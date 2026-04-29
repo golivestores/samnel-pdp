@@ -1,26 +1,5 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
 <!-- STATIC-DEPLOY-PATCH-START -->
-<style>
-  /* Force the .menu overlay visible whenever .is-menu is on .app
-     (we toggle that class via DOM in the post-NUXT patch, since Vue
-     watchers + GSAP autoAlpha aren't firing on this static deploy). */
-  .app.is-menu .menu[data-v-83565617],
-  .app.is-overlay .menu[data-v-83565617] {
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transition: opacity .5s ease, visibility .5s ease;
-  }
-  .app.is-menu .menu[data-v-83565617] .background[data-v-83565617],
-  .app.is-overlay .menu[data-v-83565617] .background[data-v-83565617] {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  /* Smooth fade-out when class removed */
-  .menu[data-v-83565617] {
-    transition: opacity .35s ease, visibility .35s ease;
-  }
-</style>
 <script>
 (function(){
   var origFetch = window.fetch;
@@ -1588,49 +1567,5 @@ window.addEventListener('unhandledrejection', function(e) {
   if (cur !== want) {
     history.replaceState(history.state, '', DESIRED + window.location.search + window.location.hash);
   }
-})();
-
-/* Fallback bottom-menu trigger. Fluid's Header / Menu components register
-   Vue watchers on the menuOpen pinia state that run GSAP autoAlpha
-   animations to reveal the .menu overlay (default visibility:hidden).
-   On this static deploy those watchers don't fire — so we add .is-menu
-   to .app via DOM directly AND force visibility via CSS overrides
-   (the BACKEND-INJECTED-MENU-CSS block below) instead of relying on
-   GSAP autoAlpha.
-
-   Important: Lenis (Fluid's smooth-scroll lib) replaces the native scroll
-   with transform-based animation, so the window 'scroll' event never
-   fires. We listen to wheel + touchmove + key events, plus an RAF poll
-   on scrollY, all of which fire regardless of Lenis. */
-(function(){
-  var endTimer = null;
-  var lastY = -1;
-  function onActivity(){
-    var app = document.querySelector('.app');
-    if (!app) return;
-    app.classList.remove('is-menu');
-    clearTimeout(endTimer);
-    endTimer = setTimeout(function(){
-      app.classList.add('is-menu', 'is-overlay');
-    }, 240);
-  }
-  function pollScroll(){
-    var y = window.scrollY || window.pageYOffset ||
-            (document.documentElement && document.documentElement.scrollTop) || 0;
-    if (lastY !== -1 && y !== lastY) onActivity();
-    lastY = y;
-    requestAnimationFrame(pollScroll);
-  }
-  function attach(){
-    window.addEventListener('wheel',     onActivity, { passive: true });
-    window.addEventListener('touchmove', onActivity, { passive: true });
-    window.addEventListener('keydown',   function(e){
-      // arrow keys / page-up/down / space / home / end can all scroll
-      if ([32,33,34,35,36,38,40].indexOf(e.keyCode) !== -1) onActivity();
-    }, { passive: true });
-    requestAnimationFrame(pollScroll);
-  }
-  if (document.readyState === 'complete') attach();
-  else window.addEventListener('load', attach, { once: true });
 })();
 </script></body></html>
