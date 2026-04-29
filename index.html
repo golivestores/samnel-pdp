@@ -1569,26 +1569,44 @@ window.addEventListener('unhandledrejection', function(e) {
   }
 })();
 
-/* Fallback bottom-menu trigger. Fluid's Header component registers its own
-   scroll:onScrollEnd hook (in onMounted) that calls setMenuOpen(true) — but
-   on this static deploy the hook sometimes fails to attach (hydration
-   timing or Lenis init issues), leaving the .menu overlay permanently
-   visibility:hidden. We mirror Fluid's behavior at the DOM level: toggle
-   .is-menu / .is-overlay on .app on scroll-end / scroll-start. Idempotent
-   with Vue's own class toggle when that does fire. */
+/* Fallback bottom-menu trigger. Fluid's Header component registers a
+   scroll:onScrollEnd hook in onMounted that calls setMenuOpen(true) and
+   reveals the .menu overlay. On this static deploy the hook fails to
+   attach reliably (hydration timing or Lenis init), so we mirror the
+   behavior at the DOM level: toggle .is-menu / .is-overlay on .app.
+
+   Important: Lenis (Fluid's smooth-scroll lib) replaces the native scroll
+   with transform-based animation, so the window 'scroll' event never
+   fires. We listen to wheel + touchmove + key events instead, which DO
+   fire regardless of Lenis, plus a polling fallback on Lenis's own
+   scrollY value via requestAnimationFrame. */
 (function(){
-  var t = null;
-  function onScroll(){
+  var endTimer = null;
+  var lastY = -1;
+  function onActivity(){
     var app = document.querySelector('.app');
     if (!app) return;
     app.classList.remove('is-menu');
-    clearTimeout(t);
-    t = setTimeout(function(){
+    clearTimeout(endTimer);
+    endTimer = setTimeout(function(){
       app.classList.add('is-menu', 'is-overlay');
-    }, 220);
+    }, 240);
+  }
+  function pollScroll(){
+    var y = window.scrollY || window.pageYOffset ||
+            (document.documentElement && document.documentElement.scrollTop) || 0;
+    if (lastY !== -1 && y !== lastY) onActivity();
+    lastY = y;
+    requestAnimationFrame(pollScroll);
   }
   function attach(){
-    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('wheel',     onActivity, { passive: true });
+    window.addEventListener('touchmove', onActivity, { passive: true });
+    window.addEventListener('keydown',   function(e){
+      // arrow keys / page-up/down / space / home / end can all scroll
+      if ([32,33,34,35,36,38,40].indexOf(e.keyCode) !== -1) onActivity();
+    }, { passive: true });
+    requestAnimationFrame(pollScroll);
   }
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
