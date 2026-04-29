@@ -1,5 +1,25 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
 <!-- STATIC-DEPLOY-PATCH-START -->
+<style>
+  /* Force the .menu overlay visible whenever .is-menu is on .app
+     (we toggle that class via DOM in the menu-trigger script, since Vue
+     watchers + GSAP autoAlpha aren't firing on this static deploy). */
+  .app.is-menu .menu[data-v-83565617],
+  .app.is-overlay .menu[data-v-83565617] {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  .app.is-menu .menu[data-v-83565617] .background[data-v-83565617],
+  .app.is-overlay .menu[data-v-83565617] .background[data-v-83565617] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .menu[data-v-83565617] {
+    transition: opacity .35s ease, visibility .35s ease;
+  }
+</style>
 <script>
 (function(){
   var origFetch = window.fetch;
@@ -978,6 +998,15 @@ window.addEventListener('unhandledrejection', function(e) {
     stroke-linecap: round !important;
   }
 
+  /* Always show the .ch-header on about page (orange Samnel bar with nav +
+     SHOP NOW). samnel-ref's buildHeader auto-hides it on wheel-down and only
+     restores on wheel-up — on the about page that means once you scroll to
+     the footer the menu is gone and never comes back. Force translateY(0). */
+  .ch-header,
+  .ch-header.is-hidden {
+    transform: translateY(0) !important;
+  }
+
   /* "Our approach" button in about-manifesto: brand blue instead of default white */
   .about-manifesto .base-button.is-white[data-v-84672489] {
     background: var(--brand-blue) !important;
@@ -1056,26 +1085,31 @@ window.addEventListener('unhandledrejection', function(e) {
     }
   }
   // Swap the about-header hero video (Vimeo glass-shaping clip) with the
-  // local brand sports/wellness clip.
+  // local brand sports/wellness clip. Non-destructive: modify <source src> in
+  // place rather than removing/adding children, and defer to window 'load'
+  // (post-hydration). Modifying DOM during Nuxt hydration triggers a Vue
+  // mismatch and re-renders the whole section, which kills GSAP intro/scroll
+  // animations on the page.
   var VIDEO_SRC = "/samnel-pdp/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
-  function swapHeaderVideo(root) {
-    var v = (root || document).querySelector('.about-header video');
+  function swapHeaderVideo() {
+    var v = document.querySelector('.about-header video');
     if (!v) return;
     if (v.getAttribute('data-samnel-swapped') === '1') return;
-    var sources = v.querySelectorAll('source');
-    sources.forEach(function(s){ s.remove(); });
-    v.setAttribute('src', VIDEO_SRC);
+    var src = v.querySelector('source');
+    if (!src) return;
+    src.setAttribute('src', VIDEO_SRC);
     v.setAttribute('data-samnel-swapped', '1');
-    try { v.load(); v.play(); } catch (e) {}
+    try { v.load(); } catch (e) {}
   }
   function start() {
     applyOverrides(document.body);
-    swapHeaderVideo(document);
-    var obs = new MutationObserver(function(){
-      applyOverrides(document.body);
-      swapHeaderVideo(document);
-    });
+    var obs = new MutationObserver(function(){ applyOverrides(document.body); });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    // Defer the video swap until after window 'load' (post-hydration)
+    function deferSwap(){ setTimeout(swapHeaderVideo, 250); }
+    if (document.readyState === 'complete') deferSwap();
+    else window.addEventListener('load', deferSwap, { once: true });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start);
@@ -1085,6 +1119,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
@@ -1200,5 +1236,37 @@ Always Fluid.</p><div class="blocks" data-v-d8cd927f><!--[--><a href="https://ww
   if (cur !== want) {
     history.replaceState(history.state, '', DESIRED + window.location.search + window.location.hash);
   }
+})();
+</script>
+<script>
+(function(){
+  var endTimer = null;
+  var lastY = -1;
+  function onActivity(){
+    var app = document.querySelector('.app');
+    if (!app) return;
+    app.classList.remove('is-menu');
+    clearTimeout(endTimer);
+    endTimer = setTimeout(function(){
+      app.classList.add('is-menu', 'is-overlay');
+    }, 240);
+  }
+  function pollScroll(){
+    var y = window.scrollY || window.pageYOffset ||
+            (document.documentElement && document.documentElement.scrollTop) || 0;
+    if (lastY !== -1 && y !== lastY) onActivity();
+    lastY = y;
+    requestAnimationFrame(pollScroll);
+  }
+  function attach(){
+    window.addEventListener('wheel',     onActivity, { passive: true });
+    window.addEventListener('touchmove', onActivity, { passive: true });
+    window.addEventListener('keydown',   function(e){
+      if ([32,33,34,35,36,38,40].indexOf(e.keyCode) !== -1) onActivity();
+    }, { passive: true });
+    requestAnimationFrame(pollScroll);
+  }
+  if (document.readyState === 'complete') attach();
+  else window.addEventListener('load', attach, { once: true });
 })();
 </script></body></html>
