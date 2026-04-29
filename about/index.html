@@ -1240,55 +1240,74 @@ Always Fluid.</p><div class="blocks" data-v-d8cd927f><!--[--><a href="https://ww
 </script>
 <script>
 (function(){
-  var SENTINEL_ID = 'samnel-bottom-sentinel';
-  var io = null;
-  var current = null;
-  function ensureSentinel(){
-    var existing = document.getElementById(SENTINEL_ID);
-    if (existing) return existing;
-    var sections = document.querySelectorAll('section');
-    if (!sections.length) return null;
-    var last = sections[sections.length - 1];
-    if (!last.parentNode) return null;
-    var s = document.createElement('div');
-    s.id = SENTINEL_ID;
-    s.style.cssText = 'height:1px;width:100%;display:block;pointer-events:none;visibility:hidden;';
-    last.parentNode.insertBefore(s, last.nextSibling);
-    return s;
-  }
-  function setMenu(open){
-    var app = document.querySelector('.app');
+  var IDLE_MS = 240;
+  var endTimer = null;
+  var menuWanted = false;
+
+  function getApp(){ return document.querySelector('.app'); }
+
+  function applyMenu(open){
+    var app = getApp();
     if (!app) return;
     if (open) {
-      app.classList.add('is-menu', 'is-overlay');
+      if (!app.classList.contains('is-menu'))    app.classList.add('is-menu');
+      if (!app.classList.contains('is-overlay')) app.classList.add('is-overlay');
     } else {
       app.classList.remove('is-menu');
       app.classList.remove('is-overlay');
     }
   }
-  function observe(s){
-    if (!s || current === s) return;
-    if (io && current) io.unobserve(current);
-    if (!io) {
-      io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){ setMenu(e.isIntersecting); });
-      }, { rootMargin: '0px 0px 60px 0px' });
-    }
-    current = s;
-    io.observe(s);
+
+  // On any scroll-ish activity: hide menu instantly + start 240ms timer to show
+  function onActivity(){
+    menuWanted = false;
+    applyMenu(false);
+    clearTimeout(endTimer);
+    endTimer = setTimeout(function(){
+      menuWanted = true;
+      applyMenu(true);
+    }, IDLE_MS);
   }
-  function tick(){
-    var s = ensureSentinel();
-    if (s && s !== current) observe(s);
+
+  // Defense: if Nuxt/Vue's reactive watcher strips our class while menuWanted,
+  // re-apply on the next class-attribute mutation.
+  function watchAppClassChanges(){
+    var app = getApp();
+    if (!app || app.__samnel_mo_attached) return;
+    app.__samnel_mo_attached = true;
+    var mo = new MutationObserver(function(){
+      if (menuWanted && app) {
+        if (!app.classList.contains('is-menu') ||
+            !app.classList.contains('is-overlay')) {
+          applyMenu(true);
+        }
+      }
+    });
+    mo.observe(app, { attributes: true, attributeFilter: ['class'] });
   }
+
   function attach(){
-    tick();
-    // Re-check on DOM changes (Nuxt may re-render sections)
-    var mo = new MutationObserver(tick);
-    mo.observe(document.body, { childList: true, subtree: true });
-    // Safety re-check on resize
-    window.addEventListener('resize', tick);
+    var opts = { passive: true, capture: true };
+    // Mouse / trackpad
+    window.addEventListener('wheel',     onActivity, opts);
+    document.addEventListener('wheel',   onActivity, opts);
+    // Touch
+    window.addEventListener('touchmove', onActivity, opts);
+    window.addEventListener('touchend',  onActivity, opts);
+    document.addEventListener('touchmove', onActivity, opts);
+    // Keyboard scroll keys (space, page up/down, arrow up/down, home, end)
+    window.addEventListener('keydown', function(e){
+      if ([32, 33, 34, 35, 36, 38, 40].indexOf(e.keyCode) !== -1) onActivity();
+    }, opts);
+    // Also catch native scroll if any container scrolls
+    document.addEventListener('scroll', onActivity, opts);
+
+    watchAppClassChanges();
+    // .app may be re-rendered; re-attach class watcher
+    var domMo = new MutationObserver(watchAppClassChanges);
+    domMo.observe(document.body, { childList: true, subtree: true });
   }
+
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
 })();
