@@ -1240,30 +1240,31 @@ Always Fluid.</p><div class="blocks" data-v-d8cd927f><!--[--><a href="https://ww
 </script>
 <script>
 (function(){
-  var endTimer = null;
-  var lastY = -1;
-  function onActivity(){
+  var BOTTOM_THRESHOLD = 80;
+  function checkBottom(){
     var app = document.querySelector('.app');
     if (!app) return;
-    app.classList.remove('is-menu');
-    clearTimeout(endTimer);
-    endTimer = setTimeout(function(){
-      app.classList.add('is-menu', 'is-overlay');
-    }, 240);
-  }
-  function pollScroll(){
     var y = window.scrollY || window.pageYOffset ||
             (document.documentElement && document.documentElement.scrollTop) || 0;
-    if (lastY !== -1 && y !== lastY) onActivity();
-    lastY = y;
+    var doc = document.documentElement;
+    var max = ((doc && doc.scrollHeight) || document.body.scrollHeight || 0) -
+              window.innerHeight;
+    var atBottom = max > BOTTOM_THRESHOLD && (max - y) <= BOTTOM_THRESHOLD;
+    if (atBottom) {
+      app.classList.add('is-menu', 'is-overlay');
+    } else {
+      app.classList.remove('is-menu');
+      app.classList.remove('is-overlay');
+    }
+  }
+  function pollScroll(){
+    checkBottom();
     requestAnimationFrame(pollScroll);
   }
   function attach(){
-    window.addEventListener('wheel',     onActivity, { passive: true });
-    window.addEventListener('touchmove', onActivity, { passive: true });
-    window.addEventListener('keydown',   function(e){
-      if ([32,33,34,35,36,38,40].indexOf(e.keyCode) !== -1) onActivity();
-    }, { passive: true });
+    window.addEventListener('wheel',     checkBottom, { passive: true });
+    window.addEventListener('touchmove', checkBottom, { passive: true });
+    window.addEventListener('resize',    checkBottom);
     requestAnimationFrame(pollScroll);
   }
   if (document.readyState === 'complete') attach();
