@@ -3,11 +3,23 @@
 <script>
 (function(){
   var origFetch = window.fetch;
+  function fixUrl(u){
+    if (typeof u !== 'string') return u;
+    if (u.indexOf('/samnel-pdp/_nuxt/') === 0) {
+      return 'https://fluid.glass/' + u.slice('/samnel-pdp/'.length);
+    }
+    if (/^\/https?:\/\//.test(u)) {
+      return u.slice(1);
+    }
+    return u;
+  }
   window.fetch = function(input, init){
-    if (typeof input === 'string' && /^\/https?:\/\//.test(input)) {
-      input = input.slice(1);
-    } else if (input && typeof input.url === 'string' && /^\/https?:\/\//.test(input.url)) {
-      input = new Request(input.url.slice(1), input);
+    if (typeof input === 'string') {
+      var fixed = fixUrl(input);
+      if (fixed !== input) input = fixed;
+    } else if (input && typeof input.url === 'string') {
+      var fixed = fixUrl(input.url);
+      if (fixed !== input.url) input = new Request(fixed, input);
     }
     return origFetch.call(this, input, init);
   };
@@ -691,51 +703,51 @@ window.addEventListener('unhandledrejection', function(e) {
   // Media replacement: swap Fluid Glass images/videos -> Samnel brand assets
   function L(name) { return '/samnel/brand/' + encodeURIComponent(name); }
   var MEDIA_MAP = {
-    "fluid-x-sliding-door-cover.png": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6a21\u7279\u56fe.jpg"),
-    "fluid-x-sliding-door-1.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a\u5c55\u5f00\u56fe-\u4e13\u4e1a\u89e3\u6790.gif"),
-    "fluid-x-sliding-door-4.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\uff08\u74f6\u5b50+\u4ea7\u54c1\uff09\u7279\u5199.jpg"),
-    "fluid-x-sliding-door-9.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a-\u7279\u5199\u955c\u5934.jpg"),
-    "fluid-x-sliding-door-mood-02.jpg": "brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
-    "sliding-door-header.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u573a\u666f\u56fe.jpg"),
-    "sliding-door-2.jpg": "brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
-    "sliding-door-3.png": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u7ec6\u8282\u56fe.jpg"),
-    "sliding-door-4.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u8c03\u914d\u6bd4\u4f8b-\u4e13\u4e1a\u7279\u5199.webp"),
-    "sliding-door-5.jpg": "brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
-    "fd21-exposed-rail-standard.png": "brand/" + encodeURIComponent("\u9ec4\u8272\u80f6\u56ca.png"),
-    "fd21hr-hidden-rail-optional.png": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u7ec6\u8282\u56fe2.jpg"),
-    "door-custom-motion.png": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a\u5c55\u5f00\u56fe-\u4e13\u4e1a\u89e3\u6790.gif"),
-    "fluid-timeless-door-handle-inline-3.png": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u5c55\u793a\uff08\u573a\u666f\u5411\uff09.jpg"),
-    "1-sliding-door-fixed-light.svg": "brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
-    "2-sliding-door-fixed-light.svg": "brand/" + encodeURIComponent("\u5973\u6027\u62c9\u4f38\u4e13\u4e1a.png"),
-    "2-sliding-doors.svg": "brand/" + encodeURIComponent("\u5973\u58eb\u770b\u624b\u673a-\u67e5\u9605\u4fe1\u606f\u7c7b.jpg"),
-    "4-sliding-doors.svg": "brand/" + encodeURIComponent("\u4e00\u4e2a\u7537\u751f\u6e38\u6cf3-\u84dd\u8272.png"),
-    "possibility-of-open-corners.svg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u5973.png"),
-    "4-sliding-doors-2-fixed-lights.svg": "brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
-    "2-sliding-doors-fixed-lights.svg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7537.png"),
-    "6-sliding-doors.svg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba-\u5065\u8eab\u5973.png"),
-    "possibility-of-open-corners-2.svg": "brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u8df3\u9ad8-\u84dd\u8272.png"),
-    "berkeley-road-header.jpg": "brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
-    "berkeley-road-mood-11.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u5c55\u793a\uff08\u573a\u666f\u5411\uff09.jpg"),
-    "beulah-walk-header.jpg": "brand/" + encodeURIComponent("\u5973\u751f\u770b\u7a97\u5916\uff0clifestyle.png"),
-    "rosewood-pilates-studio-06.jpg": "brand/" + encodeURIComponent("\u4e00\u4e2a\u5973\u751f\u62c9\u4f38\u8fd0\u52a8\uff0c\u84dd\u8272.jpg"),
-    "rosewood-pilates-studio-07.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6b63\u5728\u8c03\u914d\u6bd4\u4f8b\u7279\u5199-\u4e13\u4e1a\u5411.jpg"),
-    "rosewood-pilates-studio-08.jpg": "brand/" + encodeURIComponent("\u5973\u6027\u62c9\u4f38\u4e13\u4e1a.png"),
-    "rusty-house-header.jpg": "brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
-    "rusty-house-mood-03.jpg": "brand/" + encodeURIComponent("\u5de5\u5382\u5de5\u4f5c\u56fe-\u54c1\u724c\u5411.png"),
-    "rusty-house-mood-04.jpg": "brand/" + encodeURIComponent("\u79d1\u7814\u4eba\u5458\u5728\u5de5\u4f5c-\u54c1\u724c\u4e13\u4e1a.png"),
-    "rusty-house-mood-13.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4eba\u4f53\u6784\u9020\u79d1\u666e\u56fe.webp"),
-    "fifty-two-loves-02.jpg": "brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u6b63\u5728\u5403\u4fdd\u5065\u54c1\u7684\u7279\u5199.jpg"),
-    "fifty-two-loves-03.jpg": "brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u8eab-\u5065\u5eb7.png"),
-    "fifty-two-loves-05.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u88ab\u51b2\u5230\u6c34\u4e2d.jpg"),
-    "fifty-two-loves-07.jpg": "brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u8df3\u9ad8-\u84dd\u8272.png"),
-    "hay-street-05.jpg": "brand/" + encodeURIComponent("\u4e00\u4e2a\u7537\u751f\u6e38\u6cf3-\u84dd\u8272.png"),
-    "footer-home.jpg": "brand/" + encodeURIComponent("\u56e2\u961f\u6210\u5458\u7167\u7247-\u54c1\u724c\u5411(1).jpg"),
-    "footer-collection.jpg": "brand/" + encodeURIComponent("\u56e2\u961f\u6210\u5458\u7167\u7247-\u54c1\u724c\u5411(1).jpg"),
-    "banner-showroom.jpg": "brand/" + encodeURIComponent("\u534a\u5c4fbanner\u5c55\u793a-\u80f6\u56ca\u5c55\u793a.jpg"),
-    "vaidas-vileikis.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7537.png"),
-    "andreja-beric-review.webp": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u5973.png"),
-    "devon-mothersille.jpeg": "brand/" + encodeURIComponent("\u5973\u751f\u62f3\u51fb.png"),
-    "review-1.jpg": "brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7167\u7247.png")
+    "fluid-x-sliding-door-cover.png": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6a21\u7279\u56fe.jpg"),
+    "fluid-x-sliding-door-1.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a\u5c55\u5f00\u56fe-\u4e13\u4e1a\u89e3\u6790.gif"),
+    "fluid-x-sliding-door-4.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\uff08\u74f6\u5b50+\u4ea7\u54c1\uff09\u7279\u5199.jpg"),
+    "fluid-x-sliding-door-9.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a-\u7279\u5199\u955c\u5934.jpg"),
+    "fluid-x-sliding-door-mood-02.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
+    "sliding-door-header.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u573a\u666f\u56fe.jpg"),
+    "sliding-door-2.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
+    "sliding-door-3.png": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u7ec6\u8282\u56fe.jpg"),
+    "sliding-door-4.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u8c03\u914d\u6bd4\u4f8b-\u4e13\u4e1a\u7279\u5199.webp"),
+    "sliding-door-5.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
+    "fd21-exposed-rail-standard.png": "/samnel-pdp/brand/" + encodeURIComponent("\u9ec4\u8272\u80f6\u56ca.png"),
+    "fd21hr-hidden-rail-optional.png": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u7ec6\u8282\u56fe2.jpg"),
+    "door-custom-motion.png": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u5c55\u793a\u5c55\u5f00\u56fe-\u4e13\u4e1a\u89e3\u6790.gif"),
+    "fluid-timeless-door-handle-inline-3.png": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u5c55\u793a\uff08\u573a\u666f\u5411\uff09.jpg"),
+    "1-sliding-door-fixed-light.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
+    "2-sliding-door-fixed-light.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u5973\u6027\u62c9\u4f38\u4e13\u4e1a.png"),
+    "2-sliding-doors.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u5973\u58eb\u770b\u624b\u673a-\u67e5\u9605\u4fe1\u606f\u7c7b.jpg"),
+    "4-sliding-doors.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u4e2a\u7537\u751f\u6e38\u6cf3-\u84dd\u8272.png"),
+    "possibility-of-open-corners.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u5973.png"),
+    "4-sliding-doors-2-fixed-lights.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
+    "2-sliding-doors-fixed-lights.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7537.png"),
+    "6-sliding-doors.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba-\u5065\u8eab\u5973.png"),
+    "possibility-of-open-corners-2.svg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u8df3\u9ad8-\u84dd\u8272.png"),
+    "berkeley-road-header.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eblifestyle\u5411.png"),
+    "berkeley-road-mood-11.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6210\u5206\u5c55\u793a\uff08\u573a\u666f\u5411\uff09.jpg"),
+    "beulah-walk-header.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u5973\u751f\u770b\u7a97\u5916\uff0clifestyle.png"),
+    "rosewood-pilates-studio-06.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u4e2a\u5973\u751f\u62c9\u4f38\u8fd0\u52a8\uff0c\u84dd\u8272.jpg"),
+    "rosewood-pilates-studio-07.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u6b63\u5728\u8c03\u914d\u6bd4\u4f8b\u7279\u5199-\u4e13\u4e1a\u5411.jpg"),
+    "rosewood-pilates-studio-08.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u5973\u6027\u62c9\u4f38\u4e13\u4e1a.png"),
+    "rusty-house-header.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u5eb7-lifestyle.jpg"),
+    "rusty-house-mood-03.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u5de5\u5382\u5de5\u4f5c\u56fe-\u54c1\u724c\u5411.png"),
+    "rusty-house-mood-04.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u79d1\u7814\u4eba\u5458\u5728\u5de5\u4f5c-\u54c1\u724c\u4e13\u4e1a.png"),
+    "rusty-house-mood-13.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4eba\u4f53\u6784\u9020\u79d1\u666e\u56fe.webp"),
+    "fifty-two-loves-02.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u6b63\u5728\u5403\u4fdd\u5065\u54c1\u7684\u7279\u5199.jpg"),
+    "fifty-two-loves-03.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u7537\u58eb\u559d\u6c34-\u5065\u8eab-\u5065\u5eb7.png"),
+    "fifty-two-loves-05.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u88ab\u51b2\u5230\u6c34\u4e2d.jpg"),
+    "fifty-two-loves-07.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u540d\u7537\u751f\u8df3\u9ad8-\u84dd\u8272.png"),
+    "hay-street-05.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4e00\u4e2a\u7537\u751f\u6e38\u6cf3-\u84dd\u8272.png"),
+    "footer-home.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u56e2\u961f\u6210\u5458\u7167\u7247-\u54c1\u724c\u5411(1).jpg"),
+    "footer-collection.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u56e2\u961f\u6210\u5458\u7167\u7247-\u54c1\u724c\u5411(1).jpg"),
+    "banner-showroom.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u534a\u5c4fbanner\u5c55\u793a-\u80f6\u56ca\u5c55\u793a.jpg"),
+    "vaidas-vileikis.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7537.png"),
+    "andreja-beric-review.webp": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u5973.png"),
+    "devon-mothersille.jpeg": "/samnel-pdp/brand/" + encodeURIComponent("\u5973\u751f\u62f3\u51fb.png"),
+    "review-1.jpg": "/samnel-pdp/brand/" + encodeURIComponent("\u4fdd\u5065\u54c1\u4ee3\u8a00\u4eba\u7167\u7247.png")
   };
   function findReplacement(urlStr) {
     if (!urlStr) return null;
@@ -1260,7 +1272,7 @@ window.addEventListener('unhandledrejection', function(e) {
         btn.type = 'button';
         btn.className = 'ph-thumb' + (idx === 0 ? ' is-active' : '');
         btn.dataset.idx = String(idx);
-        var url = "brand/" + encodeURIComponent(name);
+        var url = "/samnel-pdp/brand/" + encodeURIComponent(name);
         btn.style.backgroundImage = 'url("' + url + '")';
         btn.setAttribute('aria-label', 'View image ' + (idx + 1));
         btn.addEventListener('click', function(){
