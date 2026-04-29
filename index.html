@@ -992,18 +992,44 @@ window.addEventListener('unhandledrejection', function(e) {
       max-width: 50% !important;
       width: 50% !important;
     }
-    /* Image column (2nd DOM child, visually on the left): enlarge image + shift left */
+    /* Image column (2nd DOM child, visually on the left): flex row —
+       vertical thumb strip on the LEFT, main image on the right.
+       padding-top pushes it away from the orange header,
+       padding-left pushes the thumb strip away from the screen edge. */
     .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) {
-      padding-left: 0 !important;
+      padding-top: 10rem !important;
+      padding-left: 4rem !important;
       padding-right: 0 !important;
       box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: flex-start !important;
+      gap: 1.6rem !important;
     }
     .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) .base-image[data-v-8aa832f8] {
-      max-width: 110% !important;
-      width: 110% !important;
-      margin-left: -8% !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      margin-left: 0 !important;
       margin-right: 0 !important;
     }
+    .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) .ph-thumbs.is-desktop {
+      flex: 0 0 auto !important;
+      flex-direction: column !important;
+      flex-wrap: nowrap !important;
+      width: auto !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      justify-content: flex-start !important;
+      order: -1 !important;
+    }
+    .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) .ph-thumb {
+      width: 7.2rem !important;
+      height: 7.2rem !important;
+    }
+    /* Hide the mobile-variant strip on desktop */
+    .ph-thumbs.is-mobile { display: none !important; }
   }
 
   /* Mobile only: shrink the 5 text-asset section subtitles (.base-heading) to 24px.
@@ -1015,6 +1041,39 @@ window.addEventListener('unhandledrejection', function(e) {
     .banner-cta[data-v-f377522f] .base-heading[data-v-f377522f] {
       font-size: 24px !important;
       line-height: 1.4 !important;
+    }
+
+    /* Mobile: image column (DOM 2nd) goes ABOVE the text column (DOM 1st) */
+    .product-header[data-v-8aa832f8] .container[data-v-8aa832f8] {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:first-child {
+      order: 2 !important;
+    }
+    .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) {
+      order: 1 !important;
+    }
+
+    /* Hide desktop strip on mobile; mobile strip lives in text column under the title */
+    .ph-thumbs.is-desktop { display: none !important; }
+    .ph-thumbs.is-mobile {
+      display: flex !important;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      justify-content: flex-start !important;
+      gap: .8rem !important;
+      margin: 1.6rem 0 1.2rem 0 !important;
+      padding: 0 0 .6rem 0 !important;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .ph-thumbs.is-mobile .ph-thumb {
+      width: 7rem !important;
+      height: 7rem !important;
+      flex-shrink: 0 !important;
     }
   }
 
@@ -1084,6 +1143,20 @@ window.addEventListener('unhandledrejection', function(e) {
   .ph-acc-body-inner ul { padding-left: 1.6rem; list-style: disc; margin: .6rem 0; }
   .ph-acc-body-inner li { margin-bottom: .4rem; }
   .ph-acc-body-inner p { margin: .6rem 0; }
+
+  /* Product image thumbnail strip — below the main image, both desktop & mobile */
+  .ph-thumbs { display: flex; gap: .8rem; margin-top: 1.6rem; flex-wrap: wrap;
+    justify-content: center; padding: 0 1rem; }
+  .ph-thumb { width: 7.2rem; height: 7.2rem; padding: 0;
+    background-size: cover; background-position: center; background-color: #f3efe7;
+    border: 2px solid transparent; border-radius: .4rem; cursor: pointer;
+    transition: border-color .2s ease, transform .2s ease; flex-shrink: 0; }
+  .ph-thumb:hover { border-color: var(--brand-blue); transform: translateY(-2px); }
+  .ph-thumb.is-active { border-color: var(--brand-blue); }
+  @media (max-width: 600px) {
+    .ph-thumbs { gap: .6rem; padding: 0 .6rem; margin-top: 1.2rem; }
+    .ph-thumb { width: 6rem; height: 6rem; }
+  }
 </style>
 <script>
 (function(){
@@ -1164,9 +1237,65 @@ window.addEventListener('unhandledrejection', function(e) {
     });
   }
 
+  var THUMBS = [
+    '保健品模特图.jpg',
+    '保健品（瓶子+产品）特写.jpg',
+    '保健品展示-特写镜头.jpg',
+    '保健品展示展开图-专业解析.gif',
+    '保健品成分细节图.jpg',
+    '黄色胶囊.png'
+  ];
+
+  function buildThumbStrip() {
+    var imgCol = document.querySelector('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2)');
+    var textCol = document.querySelector('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:first-child');
+    if (!imgCol || !textCol) return;
+    if (imgCol.querySelector('.ph-thumbs.is-desktop')) return;
+    var mainImg = imgCol.querySelector('img.base-image, .base-image img');
+    if (!mainImg) return;
+    var title = textCol.querySelector('h2.base-title, h1.base-title, .base-title, h1, h2');
+    if (!title) return;
+
+    function makeStrip(variant) {
+      var strip = document.createElement('div');
+      strip.className = 'ph-thumbs is-' + variant;
+      THUMBS.forEach(function(name, idx){
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ph-thumb' + (idx === 0 ? ' is-active' : '');
+        btn.dataset.idx = String(idx);
+        var url = "brand/" + encodeURIComponent(name);
+        btn.style.backgroundImage = 'url("' + url + '")';
+        btn.setAttribute('aria-label', 'View image ' + (idx + 1));
+        btn.addEventListener('click', function(){
+          var pic = mainImg.closest('picture');
+          if (pic) {
+            pic.querySelectorAll('source').forEach(function(s){ s.remove(); });
+          }
+          mainImg.removeAttribute('srcset');
+          mainImg.setAttribute('src', url);
+          // Sync active state across BOTH strips (desktop + mobile) by index
+          document.querySelectorAll('.ph-thumb').forEach(function(x){
+            x.classList.toggle('is-active', x.dataset.idx === String(idx));
+          });
+        });
+        strip.appendChild(btn);
+      });
+      return strip;
+    }
+
+    imgCol.appendChild(makeStrip('desktop'));
+    var mobileStrip = makeStrip('mobile');
+    title.parentNode.insertBefore(mobileStrip, title.nextSibling);
+  }
+
   function start() {
     buildProductExtras();
-    var obs = new MutationObserver(function(){ buildProductExtras(); });
+    buildThumbStrip();
+    var obs = new MutationObserver(function(){
+      buildProductExtras();
+      buildThumbStrip();
+    });
     obs.observe(document.documentElement, { childList: true, subtree: true });
   }
   if (document.readyState === 'loading') {
@@ -1277,6 +1406,24 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
