@@ -1240,32 +1240,54 @@ Always Fluid.</p><div class="blocks" data-v-d8cd927f><!--[--><a href="https://ww
 </script>
 <script>
 (function(){
-  var BOTTOM_THRESHOLD = 80;
-  function checkBottom(){
+  var SENTINEL_ID = 'samnel-bottom-sentinel';
+  var io = null;
+  var current = null;
+  function ensureSentinel(){
+    var existing = document.getElementById(SENTINEL_ID);
+    if (existing) return existing;
+    var sections = document.querySelectorAll('section');
+    if (!sections.length) return null;
+    var last = sections[sections.length - 1];
+    if (!last.parentNode) return null;
+    var s = document.createElement('div');
+    s.id = SENTINEL_ID;
+    s.style.cssText = 'height:1px;width:100%;display:block;pointer-events:none;visibility:hidden;';
+    last.parentNode.insertBefore(s, last.nextSibling);
+    return s;
+  }
+  function setMenu(open){
     var app = document.querySelector('.app');
     if (!app) return;
-    var y = window.scrollY || window.pageYOffset ||
-            (document.documentElement && document.documentElement.scrollTop) || 0;
-    var doc = document.documentElement;
-    var max = ((doc && doc.scrollHeight) || document.body.scrollHeight || 0) -
-              window.innerHeight;
-    var atBottom = max > BOTTOM_THRESHOLD && (max - y) <= BOTTOM_THRESHOLD;
-    if (atBottom) {
+    if (open) {
       app.classList.add('is-menu', 'is-overlay');
     } else {
       app.classList.remove('is-menu');
       app.classList.remove('is-overlay');
     }
   }
-  function pollScroll(){
-    checkBottom();
-    requestAnimationFrame(pollScroll);
+  function observe(s){
+    if (!s || current === s) return;
+    if (io && current) io.unobserve(current);
+    if (!io) {
+      io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ setMenu(e.isIntersecting); });
+      }, { rootMargin: '0px 0px 60px 0px' });
+    }
+    current = s;
+    io.observe(s);
+  }
+  function tick(){
+    var s = ensureSentinel();
+    if (s && s !== current) observe(s);
   }
   function attach(){
-    window.addEventListener('wheel',     checkBottom, { passive: true });
-    window.addEventListener('touchmove', checkBottom, { passive: true });
-    window.addEventListener('resize',    checkBottom);
-    requestAnimationFrame(pollScroll);
+    tick();
+    // Re-check on DOM changes (Nuxt may re-render sections)
+    var mo = new MutationObserver(tick);
+    mo.observe(document.body, { childList: true, subtree: true });
+    // Safety re-check on resize
+    window.addEventListener('resize', tick);
   }
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
