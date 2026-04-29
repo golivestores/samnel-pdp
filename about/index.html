@@ -1,4 +1,24 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
+<!-- STATIC-DEPLOY-PATCH-START -->
+<script>
+(function(){
+  // Redirect runtime fetches of /_nuxt/* to fluid.glass — Nuxt's app init
+  // requests /_nuxt/builds/meta/<id>.json (manifest) at runtime via
+  // baseURL+path, and we don't host the _nuxt build artifacts on this
+  // domain (they live on fluid.glass).
+  var origFetch = window.fetch;
+  window.fetch = function(input, init){
+    var u = typeof input === 'string' ? input : (input && input.url);
+    if (typeof u === 'string' && u.indexOf('/_nuxt/') === 0) {
+      var fixed = 'https://fluid.glass' + u;
+      if (typeof input === 'string') input = fixed;
+      else input = new Request(fixed, input);
+    }
+    return origFetch.call(this, input, init);
+  };
+})();
+</script>
+<!-- STATIC-DEPLOY-PATCH-END -->
 <!-- SAMNEL-INJECT-START -->
 <style>
   /* === Samnel brand palette === */
