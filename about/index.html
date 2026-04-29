@@ -978,6 +978,16 @@ window.addEventListener('unhandledrejection', function(e) {
     stroke-linecap: round !important;
   }
 
+  /* Always show the .ch-header on about page (the orange bar with Samnel logo +
+     ABOUT/PRODUCTS/... nav + blue SHOP NOW button). samnel-ref's buildHeader
+     auto-hides it on wheel-down and only restores on wheel-up — on the about
+     page that means once you scroll to the footer the menu is gone and never
+     comes back. Force translateY(0) so it stays pinned. */
+  .ch-header,
+  .ch-header.is-hidden {
+    transform: translateY(0) !important;
+  }
+
   /* "Our approach" button in about-manifesto: brand blue instead of default white */
   .about-manifesto .base-button.is-white[data-v-84672489] {
     background: var(--brand-blue) !important;
@@ -1091,6 +1101,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
