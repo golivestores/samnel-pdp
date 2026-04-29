@@ -1568,4 +1568,29 @@ window.addEventListener('unhandledrejection', function(e) {
     history.replaceState(history.state, '', DESIRED + window.location.search + window.location.hash);
   }
 })();
+
+/* Fallback bottom-menu trigger. Fluid's Header component registers its own
+   scroll:onScrollEnd hook (in onMounted) that calls setMenuOpen(true) — but
+   on this static deploy the hook sometimes fails to attach (hydration
+   timing or Lenis init issues), leaving the .menu overlay permanently
+   visibility:hidden. We mirror Fluid's behavior at the DOM level: toggle
+   .is-menu / .is-overlay on .app on scroll-end / scroll-start. Idempotent
+   with Vue's own class toggle when that does fire. */
+(function(){
+  var t = null;
+  function onScroll(){
+    var app = document.querySelector('.app');
+    if (!app) return;
+    app.classList.remove('is-menu');
+    clearTimeout(t);
+    t = setTimeout(function(){
+      app.classList.add('is-menu', 'is-overlay');
+    }, 220);
+  }
+  function attach(){
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+  if (document.readyState === 'complete') attach();
+  else window.addEventListener('load', attach, { once: true });
+})();
 </script></body></html>
