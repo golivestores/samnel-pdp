@@ -1058,25 +1058,30 @@ window.addEventListener('unhandledrejection', function(e) {
   // Swap the about-header hero video (Vimeo glass-shaping clip) with the
   // local brand sports/wellness clip. Double quotes match build_deploy.py's
   // "/brand/" -> "/samnel-pdp/brand/" rewrite pattern.
+  // IMPORTANT: non-destructive (modify <source src> in place, don't remove/add
+  // children, don't call play()). Done once via window.load after Nuxt has
+  // fully hydrated — modifying DOM during hydration triggers Vue mismatch
+  // and re-renders the whole section, which kills GSAP intro/scroll animations.
   var VIDEO_SRC = "/samnel-pdp/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
-  function swapHeaderVideo(root) {
-    var v = (root || document).querySelector('.about-header video');
+  function swapHeaderVideo() {
+    var v = document.querySelector('.about-header video');
     if (!v) return;
     if (v.getAttribute('data-samnel-swapped') === '1') return;
-    var sources = v.querySelectorAll('source');
-    sources.forEach(function(s){ s.remove(); });
-    v.setAttribute('src', VIDEO_SRC);
+    var src = v.querySelector('source');
+    if (!src) return;
+    src.setAttribute('src', VIDEO_SRC);
     v.setAttribute('data-samnel-swapped', '1');
-    try { v.load(); v.play(); } catch (e) {}
+    try { v.load(); } catch (e) {}
   }
   function start() {
     applyOverrides(document.body);
-    swapHeaderVideo(document);
-    var obs = new MutationObserver(function(){
-      applyOverrides(document.body);
-      swapHeaderVideo(document);
-    });
+    var obs = new MutationObserver(function(){ applyOverrides(document.body); });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    // Defer the video swap until after window 'load' (post-hydration).
+    function deferSwap(){ setTimeout(swapHeaderVideo, 250); }
+    if (document.readyState === 'complete') deferSwap();
+    else window.addEventListener('load', deferSwap, { once: true });
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start);
@@ -1086,6 +1091,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
