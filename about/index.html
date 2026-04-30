@@ -115,7 +115,8 @@
 // Save+restore main: Vue's hydration error swaps <main>'s content with
 // <section class="error"> (the 404 component). Capture SSR's main.innerHTML
 // as soon as it's parsed, then restore it whenever the error section
-// appears.
+// appears. Defers the MutationObserver until document.body exists
+// (this script runs in <head>, before body is parsed).
 (function(){
   var savedMain = '';
   function tryCapture(){
@@ -126,14 +127,7 @@
     }
     return false;
   }
-  // Try capturing aggressively in the first 2 seconds
-  var timer = setInterval(function(){
-    if (tryCapture()) clearInterval(timer);
-  }, 30);
-  setTimeout(function(){ clearInterval(timer); }, 2000);
-
-  // Watch for the error section appearing and restore main
-  var mo = new MutationObserver(function(){
+  function restoreIfError(){
     var m = document.querySelector('main');
     if (!m) return;
     var hasError = m.querySelector('section.error, [data-nuxt-error], .nuxt-error') ||
@@ -141,8 +135,28 @@
     if (hasError && savedMain) {
       m.innerHTML = savedMain;
     }
-  });
-  mo.observe(document.body, { childList: true, subtree: true });
+  }
+  // Capture aggressively in the first 2 seconds
+  var captureTimer = setInterval(function(){
+    if (tryCapture()) clearInterval(captureTimer);
+  }, 30);
+  setTimeout(function(){ clearInterval(captureTimer); }, 2000);
+  // Defer observer until body exists
+  function startObserver(){
+    if (!document.body) {
+      requestAnimationFrame(startObserver);
+      return;
+    }
+    var mo = new MutationObserver(restoreIfError);
+    mo.observe(document.body, { childList: true, subtree: true });
+    // Also run an initial check in case error already exists
+    restoreIfError();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
 })();
 
 // Bottom-menu fallback observer. Two IntersectionObservers:
