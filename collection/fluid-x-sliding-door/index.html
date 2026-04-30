@@ -47,6 +47,17 @@
       headers: { 'Content-Type': 'application/json' }
     });
   }
+  // Synthesize an empty payload response — for any /<route>/_payload.json
+  // request. We don't host these (the prerendered HTML already has the
+  // payload data inline as __NUXT_DATA__), but Nuxt still tries to fetch
+  // them for nav prefetch / SSR-validation. Return valid empty JSON so
+  // JSON.parse succeeds and the 404 page doesn't flash.
+  function synthPayload(){
+    return new Response('{}', {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
   window.fetch = function(input, init){
     var u = typeof input === 'string' ? input : (input && input.url);
     if (typeof u === 'string') {
@@ -55,7 +66,11 @@
       if (m) {
         return Promise.resolve(synthManifest(m[1]));
       }
-      // 2) Other /_nuxt/* assets: redirect to fluid.glass (CDN still has them)
+      // 2) Same-origin _payload.json: synthesize empty 200 response
+      if (/^\/[^/]*.*\/_payload\.json/.test(u) || /\/_payload\.json/.test(u) && u.indexOf('://') === -1) {
+        return Promise.resolve(synthPayload());
+      }
+      // 3) Other /_nuxt/* assets: redirect to fluid.glass (CDN still has them)
       if (u.indexOf('/_nuxt/') === 0) {
         var fixed = 'https://fluid.glass' + u;
         if (typeof input === 'string') input = fixed;
@@ -67,43 +82,57 @@
 })();
 
 // Bottom-menu fallback observer. Two IntersectionObservers:
-// (1) on .banner-cta — track whether the section is in viewport
-// (2) on <footer>      — track whether the footer is in viewport
-// Show menu ONLY when banner-cta is out of viewport AND footer is in.
-// This fires the moment banner-cta scrolls fully past the top while the
-// footer (which contains the small "Samnel" italic logo at its top) starts
-// becoming visible — matching the user's request that menu sync with the
-// footer logo's appearance.
+// (1) on .banner-cta — show menu only when banner-cta is out of viewport
+// (2) on <footer>     — AND the footer is in viewport
+//
+// Both observers re-attach themselves whenever Nuxt re-renders the page
+// (which can replace the DOM elements with new ones, leaving our
+// observers pointing at stale references — that was breaking the desktop
+// trigger).
 (function(){
-  function attach(){
-    var bcta = document.querySelector('.banner-cta');
-    var footer = document.querySelector('footer');
-    var app = document.querySelector('.app');
-    if (!bcta || !footer || !app) { setTimeout(attach, 200); return; }
-    var bIn = false;
-    var fIn = false;
-    function update(){
-      if (!bIn && fIn) app.classList.add('samnel-menu-open');
-      else app.classList.remove('samnel-menu-open');
-    }
-    // banner-cta "out" check fires 200px earlier — when only the bottom
-    // 200px is left poking into viewport top (effective viewport top is
-    // shrunk DOWN 200px). Helps on mobile where natural scroll-to-bottom
-    // can leave a sliver of banner-cta still technically intersecting,
-    // requiring rubber-band overscroll to fully clear it.
-    new IntersectionObserver(function(entries){
+  var bIn = false, fIn = false;
+  var bctaEl = null, footerEl = null;
+  var bctaIO = null, footerIO = null;
+  var app = null;
+  function update(){
+    if (!app) return;
+    if (!bIn && fIn) app.classList.add('samnel-menu-open');
+    else app.classList.remove('samnel-menu-open');
+  }
+  function attachBanner(el){
+    if (bctaIO) { bctaIO.disconnect(); bctaIO = null; }
+    bctaEl = el;
+    if (!el) { bIn = false; return; }
+    bctaIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ bIn = e.isIntersecting; });
       update();
-    }, { rootMargin: '-200px 0px 0px 0px' }).observe(bcta);
-    // footer "in" check fires 200px earlier — 200px before the footer's
-    // top edge actually enters the viewport from the bottom.
-    new IntersectionObserver(function(entries){
+    }, { rootMargin: '-200px 0px 0px 0px' });
+    bctaIO.observe(el);
+  }
+  function attachFooter(el){
+    if (footerIO) { footerIO.disconnect(); footerIO = null; }
+    footerEl = el;
+    if (!el) { fIn = false; return; }
+    footerIO = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ fIn = e.isIntersecting; });
       update();
-    }, { rootMargin: '0px 0px 200px 0px' }).observe(footer);
+    }, { rootMargin: '0px 0px 200px 0px' });
+    footerIO.observe(el);
   }
-  if (document.readyState === 'complete') attach();
-  else window.addEventListener('load', attach, { once: true });
+  function check(){
+    app = document.querySelector('.app');
+    var b = document.querySelector('.banner-cta');
+    var f = document.querySelector('footer');
+    if (b && b !== bctaEl) attachBanner(b);
+    if (f && f !== footerEl) attachFooter(f);
+  }
+  function start(){
+    check();
+    var mo = new MutationObserver(check);
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'complete') start();
+  else window.addEventListener('load', start, { once: true });
 })();
 </script>
 <!-- STATIC-DEPLOY-PATCH-END -->
