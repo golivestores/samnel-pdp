@@ -27,11 +27,20 @@
   // We synthesize a permissive matching manifest with the same id Nuxt
   // expects, so init succeeds and routing proceeds normally.
   function synthManifest(id){
+    // Include current pathname (with + without trailing slash) so Nuxt
+    // recognizes the route as prerendered and skips the dynamic
+    // _payload.json fetch (which would 404 and trigger the 404 page).
+    var p = window.location.pathname;
+    var noSlash = p.replace(/\/+$/, '') || '/';
+    var withSlash = noSlash === '/' ? '/' : noSlash + '/';
+    var statics = {};
+    statics[noSlash] = {};
+    statics[withSlash] = {};
     var body = JSON.stringify({
       id: id,
       timestamp: Date.now(),
-      matcher: { static: {}, wildcard: {}, dynamic: {} },
-      prerendered: []
+      matcher: { static: statics, wildcard: {}, dynamic: {} },
+      prerendered: [noSlash, withSlash]
     });
     return new Response(body, {
       status: 200,
@@ -57,19 +66,42 @@
   };
 })();
 
-// Bottom-menu fallback observer.
+// Bottom-menu fallback observer. Insert a 1px sentinel as the LAST child
+// of <footer> (i.e. at the absolute bottom of the page content) and
+// observe that — fires only when the user has scrolled to the very end
+// of the footer, not when the footer's top is barely visible.
 (function(){
-  function attach(){
+  var SENTINEL_ID = 'samnel-bottom-sentinel';
+  function ensure(){
     var footer = document.querySelector('footer');
     var app = document.querySelector('.app');
-    if (!footer || !app) { setTimeout(attach, 200); return; }
+    if (!footer || !app) return null;
+    var s = document.getElementById(SENTINEL_ID);
+    if (s && s.parentNode === footer && s === footer.lastElementChild) return s;
+    if (s && s.parentNode) s.parentNode.removeChild(s);
+    s = document.createElement('div');
+    s.id = SENTINEL_ID;
+    s.style.cssText = 'height:1px;width:100%;display:block;visibility:hidden;pointer-events:none;';
+    footer.appendChild(s);
+    return s;
+  }
+  function attach(){
+    var s = ensure();
+    var app = document.querySelector('.app');
+    if (!s || !app) { setTimeout(attach, 200); return; }
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
         if (e.isIntersecting) app.classList.add('samnel-menu-open');
         else app.classList.remove('samnel-menu-open');
       });
-    }, { rootMargin: '0px 0px 80px 0px' });
-    io.observe(footer);
+    });
+    io.observe(s);
+    // Re-attach if Nuxt re-renders footer
+    var mo = new MutationObserver(function(){
+      var ns = ensure();
+      if (ns && ns !== s) { io.unobserve(s); s = ns; io.observe(s); }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
   }
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
