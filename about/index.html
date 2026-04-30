@@ -1,25 +1,18 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
 <!-- STATIC-DEPLOY-PATCH-START -->
 <style>
-  /* Skip the page-open intro animation entirely. The intro is Fluid's
-     loading overlay (cube wordmark fade-in / fade-out) that runs before
-     content reveals. */
+  /* Skip the page-open intro animation entirely. */
   .intro { display: none !important; }
-  /* Don't dim main during intro (.is-overlay class is added during the
-     intro animation; with intro hidden, the dim shouldn't run either). */
   main:before, .is-overlay main:before { display: none !important; opacity: 0 !important; }
 
-  /* Hide <main> content for the first 900ms after first paint, then
-     fade in. This masks any brief flash of Nuxt's 404 component during
-     the post-load / pre-hydration window. By the time the fade-in runs,
-     hydration has completed and the actual page content is rendered.
-     The orange Samnel header stays visible the whole time. */
-  @keyframes samnel-fade-main {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  main {
-    animation: samnel-fade-main 0.4s ease 0.9s both;
+  /* HARD KILL: hide Nuxt's 404 error component anywhere in the document.
+     If hydration fails and Vue swaps main with section.error, this CSS
+     keeps it invisible while the JS below restores the SSR content. */
+  section.error,
+  [data-nuxt-error],
+  .nuxt-error {
+    display: none !important;
+    visibility: hidden !important;
   }
 
   /* Bottom-menu fallback: Fluid's GSAP ScrollTrigger that toggles
@@ -117,6 +110,39 @@
     }
     return origFetch.call(this, input, init);
   };
+})();
+
+// Save+restore main: Vue's hydration error swaps <main>'s content with
+// <section class="error"> (the 404 component). Capture SSR's main.innerHTML
+// as soon as it's parsed, then restore it whenever the error section
+// appears.
+(function(){
+  var savedMain = '';
+  function tryCapture(){
+    var m = document.querySelector('main');
+    if (m && m.children.length > 0 && !/does not exist/i.test(m.textContent || '')) {
+      savedMain = m.innerHTML;
+      return true;
+    }
+    return false;
+  }
+  // Try capturing aggressively in the first 2 seconds
+  var timer = setInterval(function(){
+    if (tryCapture()) clearInterval(timer);
+  }, 30);
+  setTimeout(function(){ clearInterval(timer); }, 2000);
+
+  // Watch for the error section appearing and restore main
+  var mo = new MutationObserver(function(){
+    var m = document.querySelector('main');
+    if (!m) return;
+    var hasError = m.querySelector('section.error, [data-nuxt-error], .nuxt-error') ||
+                   /does not exist/i.test(m.textContent || '');
+    if (hasError && savedMain) {
+      m.innerHTML = savedMain;
+    }
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
 })();
 
 // Bottom-menu fallback observer. Two IntersectionObservers:
