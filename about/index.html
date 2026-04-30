@@ -134,26 +134,58 @@
     });
     return p;
   };
+  function findError(){
+    // Find any element containing the 404 phrase, anywhere in body
+    var nodes = document.body ? document.body.querySelectorAll('*') : [];
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      if (el.children.length > 0) continue;
+      var t = el.textContent || '';
+      if (/does not exist/i.test(t)) {
+        var parent = el.parentElement;
+        return {
+          tag: el.tagName,
+          cls: el.className || '',
+          parentTag: parent && parent.tagName,
+          parentCls: parent && parent.className || '',
+          ancestor: parent && parent.parentElement && parent.parentElement.tagName + '.' + (parent.parentElement.className || '')
+        };
+      }
+    }
+    return null;
+  }
   function snap(){
     var m = document.querySelector('main');
     var txt = m && m.textContent || '';
+    var bodyTxt = document.body ? document.body.textContent || '' : '';
+    var err = findError();
     snaps.push({
       ms: Math.round(performance.now() - start),
       op: m ? +getComputedStyle(m).opacity : null,
-      e404: /404[\s\S]{0,30}does not exist/i.test(txt),
-      head: txt.replace(/\s+/g, ' ').slice(0, 60),
-      kids: m ? m.children.length : 0
+      mDisp: m ? getComputedStyle(m).display : null,
+      mainHas404: /does not exist/i.test(txt),
+      bodyHas404: /does not exist/i.test(bodyTxt),
+      title: document.title.slice(0, 40),
+      errIn: err ? (err.tag + '.' + err.cls + ' < ' + err.parentTag + '.' + err.parentCls) : null,
+      mKids: m ? m.children.length : 0,
+      bodyKids: document.body ? document.body.children.length : 0
     });
   }
-  for (var i = 0; i <= 50; i++) setTimeout(snap, i * 100);
+  for (var i = 0; i <= 100; i++) setTimeout(snap, i * 100);
   setTimeout(function(){
-    console.log('====== SAMNEL DIAG (snapshots @ 100ms) ======');
+    console.log('====== SAMNEL DIAG (snapshots @ 100ms, 10s window) ======');
     console.table(snaps);
     console.log('====== fetch calls ======');
     console.table(fetches);
+    // also look at <main> animation state
+    var m = document.querySelector('main');
+    if (m) {
+      console.log('main computed animation:', getComputedStyle(m).animation);
+      console.log('main computed opacity:',  getComputedStyle(m).opacity);
+    }
     window.__samnel_diag = { snaps: snaps, fetches: fetches };
     console.log('Export: copy(JSON.stringify(__samnel_diag, null, 2))');
-  }, 5500);
+  }, 10500);
 })();
 // ========== END DIAGNOSTIC ==========
 
