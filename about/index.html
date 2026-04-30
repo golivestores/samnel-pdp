@@ -1,6 +1,14 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
 <!-- STATIC-DEPLOY-PATCH-START -->
 <style>
+  /* Skip the page-open intro animation entirely. The intro is Fluid's
+     loading overlay (cube wordmark fade-in / fade-out) that runs before
+     content reveals. */
+  .intro { display: none !important; }
+  /* Don't dim main during intro (.is-overlay class is added during the
+     intro animation; with intro hidden, the dim shouldn't run either). */
+  main:before, .is-overlay main:before { display: none !important; opacity: 0 !important; }
+
   /* Bottom-menu fallback: Fluid's GSAP ScrollTrigger that toggles
      .menu visibility doesn't fire on every page (works on the homepage
      and product page, doesn't on the about page). When IntersectionObserver
