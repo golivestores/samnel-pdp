@@ -66,42 +66,26 @@
   };
 })();
 
-// Bottom-menu fallback observer. Insert a 1px sentinel as the LAST child
-// of <footer> (i.e. at the absolute bottom of the page content) and
-// observe that — fires only when the user has scrolled to the very end
-// of the footer, not when the footer's top is barely visible.
+// Bottom-menu fallback observer. Observe .banner-cta directly: show menu
+// only when banner-cta is FULLY ABOVE the viewport (its bottom edge has
+// scrolled past the top of the screen). Hide whenever it's anywhere in
+// view, or below.
 (function(){
-  var SENTINEL_ID = 'samnel-bottom-sentinel';
-  function ensure(){
-    var footer = document.querySelector('footer');
-    var app = document.querySelector('.app');
-    if (!footer || !app) return null;
-    var s = document.getElementById(SENTINEL_ID);
-    if (s && s.parentNode === footer && s === footer.lastElementChild) return s;
-    if (s && s.parentNode) s.parentNode.removeChild(s);
-    s = document.createElement('div');
-    s.id = SENTINEL_ID;
-    s.style.cssText = 'height:1px;width:100%;display:block;visibility:hidden;pointer-events:none;';
-    footer.appendChild(s);
-    return s;
-  }
   function attach(){
-    var s = ensure();
+    var bcta = document.querySelector('.banner-cta');
     var app = document.querySelector('.app');
-    if (!s || !app) { setTimeout(attach, 200); return; }
+    if (!bcta || !app) { setTimeout(attach, 200); return; }
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){
-        if (e.isIntersecting) app.classList.add('samnel-menu-open');
-        else app.classList.remove('samnel-menu-open');
+        var rect = e.boundingClientRect;
+        if (!e.isIntersecting && rect.bottom < 0) {
+          app.classList.add('samnel-menu-open');
+        } else {
+          app.classList.remove('samnel-menu-open');
+        }
       });
     });
-    io.observe(s);
-    // Re-attach if Nuxt re-renders footer
-    var mo = new MutationObserver(function(){
-      var ns = ensure();
-      if (ns && ns !== s) { io.unobserve(s); s = ns; io.observe(s); }
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
+    io.observe(bcta);
   }
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
