@@ -66,26 +66,34 @@
   };
 })();
 
-// Bottom-menu fallback observer. Observe .banner-cta directly: show menu
-// only when banner-cta is FULLY ABOVE the viewport (its bottom edge has
-// scrolled past the top of the screen). Hide whenever it's anywhere in
-// view, or below.
+// Bottom-menu fallback observer. Two IntersectionObservers:
+// (1) on .banner-cta — track whether the section is in viewport
+// (2) on <footer>      — track whether the footer is in viewport
+// Show menu ONLY when banner-cta is out of viewport AND footer is in.
+// This fires the moment banner-cta scrolls fully past the top while the
+// footer (which contains the small "Samnel" italic logo at its top) starts
+// becoming visible — matching the user's request that menu sync with the
+// footer logo's appearance.
 (function(){
   function attach(){
     var bcta = document.querySelector('.banner-cta');
+    var footer = document.querySelector('footer');
     var app = document.querySelector('.app');
-    if (!bcta || !app) { setTimeout(attach, 200); return; }
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        var rect = e.boundingClientRect;
-        if (!e.isIntersecting && rect.bottom < 0) {
-          app.classList.add('samnel-menu-open');
-        } else {
-          app.classList.remove('samnel-menu-open');
-        }
-      });
-    });
-    io.observe(bcta);
+    if (!bcta || !footer || !app) { setTimeout(attach, 200); return; }
+    var bIn = false;
+    var fIn = false;
+    function update(){
+      if (!bIn && fIn) app.classList.add('samnel-menu-open');
+      else app.classList.remove('samnel-menu-open');
+    }
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ bIn = e.isIntersecting; });
+      update();
+    }).observe(bcta);
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ fIn = e.isIntersecting; });
+      update();
+    }).observe(footer);
   }
   if (document.readyState === 'complete') attach();
   else window.addEventListener('load', attach, { once: true });
