@@ -112,6 +112,51 @@
   };
 })();
 
+// ========== SAMNEL TEMP DIAGNOSTIC (remove after debugging) ==========
+(function(){
+  var snaps = [], fetches = [], start = performance.now();
+  // Wrap fetch (runs AFTER the shim above, so we see the shim's responses too)
+  var origF = window.fetch;
+  window.fetch = function(i, n){
+    var url = typeof i === 'string' ? i : (i && i.url) || '';
+    var t = Math.round(performance.now() - start);
+    var p;
+    try { p = origF.call(this, i, n); }
+    catch(e){ fetches.push({t:t, url:url.slice(0,90), error:e.message}); throw e; }
+    p.then(function(r){
+      r.clone().text().then(function(b){
+        fetches.push({t:t, url:url.slice(0,90), status:r.status, head:b.slice(0,80)});
+      }).catch(function(e){
+        fetches.push({t:t, url:url.slice(0,90), status:r.status, readErr:e.message});
+      });
+    }, function(e){
+      fetches.push({t:t, url:url.slice(0,90), error:e.message});
+    });
+    return p;
+  };
+  function snap(){
+    var m = document.querySelector('main');
+    var txt = m && m.textContent || '';
+    snaps.push({
+      ms: Math.round(performance.now() - start),
+      op: m ? +getComputedStyle(m).opacity : null,
+      e404: /404[\s\S]{0,30}does not exist/i.test(txt),
+      head: txt.replace(/\s+/g, ' ').slice(0, 60),
+      kids: m ? m.children.length : 0
+    });
+  }
+  for (var i = 0; i <= 50; i++) setTimeout(snap, i * 100);
+  setTimeout(function(){
+    console.log('====== SAMNEL DIAG (snapshots @ 100ms) ======');
+    console.table(snaps);
+    console.log('====== fetch calls ======');
+    console.table(fetches);
+    window.__samnel_diag = { snaps: snaps, fetches: fetches };
+    console.log('Export: copy(JSON.stringify(__samnel_diag, null, 2))');
+  }, 5500);
+})();
+// ========== END DIAGNOSTIC ==========
+
 // Bottom-menu fallback observer. Two IntersectionObservers:
 // (1) on .banner-cta — show menu only when banner-cta is out of viewport
 // (2) on <footer>     — AND the footer is in viewport
