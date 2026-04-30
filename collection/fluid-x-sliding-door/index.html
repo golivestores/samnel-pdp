@@ -114,6 +114,45 @@
   };
 })();
 
+// Footer save+restore: the Footer Vue component reads globalStore.navSocial
+// from a null pinia state and crashes (`Cannot read properties of null
+// (reading 'navSocial')`), leaving an empty <footer>. Capture the SSR
+// footer's outerHTML before Vue touches it, then check after 5 seconds
+// whether the footer is empty and restore from the saved copy if so.
+(function(){
+  var savedFooter = '';
+  function tryCaptureFooter(){
+    var f = document.querySelector('footer');
+    if (f && f.children.length > 0 && (f.textContent || '').length > 50) {
+      savedFooter = f.outerHTML;
+      return true;
+    }
+    return false;
+  }
+  var timer = setInterval(function(){
+    if (tryCaptureFooter()) clearInterval(timer);
+  }, 30);
+  setTimeout(function(){ clearInterval(timer); }, 2500);
+
+  // After Vue's hydration finishes, check if footer is empty and restore.
+  // Done once at 6s — by then Vue is settled and won't immediately undo us.
+  setTimeout(function(){
+    if (!savedFooter) return;
+    var f = document.querySelector('footer');
+    var isEmpty = !f || f.children.length === 0 || (f.textContent || '').length < 50;
+    if (isEmpty) {
+      var holder = document.createElement('div');
+      holder.innerHTML = savedFooter;
+      var newFooter = holder.firstChild;
+      if (f && f.parentNode) {
+        f.parentNode.replaceChild(newFooter, f);
+      } else {
+        document.body.appendChild(newFooter);
+      }
+    }
+  }, 6000);
+})();
+
 // Bottom-menu fallback observer. Two IntersectionObservers:
 // (1) on .banner-cta — show menu only when banner-cta is out of viewport
 // (2) on <footer>     — AND the footer is in viewport
