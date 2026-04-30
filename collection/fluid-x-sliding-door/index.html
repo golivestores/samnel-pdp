@@ -97,8 +97,15 @@
       if (m) {
         return Promise.resolve(synthManifest(m[1]));
       }
-      // 2) Same-origin _payload.json: synthesize empty 200 response
-      if (/^\/[^/]*.*\/_payload\.json/.test(u) || /\/_payload\.json/.test(u) && u.indexOf('://') === -1) {
+      // 2) ANY _payload.json — same-origin OR absolute fluid.glass.
+      //    Critical: build_deploy.py rewrites /<route>/_payload.json paths
+      //    to https://fluid.glass/<route>/_payload.json (because /about etc.
+      //    are in the prefix list). When Nuxt fetches that URL it gets the
+      //    REAL Fluid Glass payload, hydration mismatches our Samnel SSR
+      //    content, and Nuxt renders its 404 error component. Intercepting
+      //    here regardless of origin keeps Nuxt's view consistent with the
+      //    embedded __NUXT_DATA__ that drove SSR.
+      if (u.indexOf('_payload.json') !== -1) {
         return Promise.resolve(synthPayload());
       }
       // 3) Other /_nuxt/* assets: redirect to fluid.glass (CDN still has them)
@@ -111,83 +118,6 @@
     return origFetch.call(this, input, init);
   };
 })();
-
-// ========== SAMNEL TEMP DIAGNOSTIC (remove after debugging) ==========
-(function(){
-  var snaps = [], fetches = [], start = performance.now();
-  // Wrap fetch (runs AFTER the shim above, so we see the shim's responses too)
-  var origF = window.fetch;
-  window.fetch = function(i, n){
-    var url = typeof i === 'string' ? i : (i && i.url) || '';
-    var t = Math.round(performance.now() - start);
-    var p;
-    try { p = origF.call(this, i, n); }
-    catch(e){ fetches.push({t:t, url:url.slice(0,90), error:e.message}); throw e; }
-    p.then(function(r){
-      r.clone().text().then(function(b){
-        fetches.push({t:t, url:url.slice(0,90), status:r.status, head:b.slice(0,80)});
-      }).catch(function(e){
-        fetches.push({t:t, url:url.slice(0,90), status:r.status, readErr:e.message});
-      });
-    }, function(e){
-      fetches.push({t:t, url:url.slice(0,90), error:e.message});
-    });
-    return p;
-  };
-  function findError(){
-    // Find any element containing the 404 phrase, anywhere in body
-    var nodes = document.body ? document.body.querySelectorAll('*') : [];
-    for (var i = 0; i < nodes.length; i++) {
-      var el = nodes[i];
-      if (el.children.length > 0) continue;
-      var t = el.textContent || '';
-      if (/does not exist/i.test(t)) {
-        var parent = el.parentElement;
-        return {
-          tag: el.tagName,
-          cls: el.className || '',
-          parentTag: parent && parent.tagName,
-          parentCls: parent && parent.className || '',
-          ancestor: parent && parent.parentElement && parent.parentElement.tagName + '.' + (parent.parentElement.className || '')
-        };
-      }
-    }
-    return null;
-  }
-  function snap(){
-    var m = document.querySelector('main');
-    var txt = m && m.textContent || '';
-    var bodyTxt = document.body ? document.body.textContent || '' : '';
-    var err = findError();
-    snaps.push({
-      ms: Math.round(performance.now() - start),
-      op: m ? +getComputedStyle(m).opacity : null,
-      mDisp: m ? getComputedStyle(m).display : null,
-      mainHas404: /does not exist/i.test(txt),
-      bodyHas404: /does not exist/i.test(bodyTxt),
-      title: document.title.slice(0, 40),
-      errIn: err ? (err.tag + '.' + err.cls + ' < ' + err.parentTag + '.' + err.parentCls) : null,
-      mKids: m ? m.children.length : 0,
-      bodyKids: document.body ? document.body.children.length : 0
-    });
-  }
-  for (var i = 0; i <= 100; i++) setTimeout(snap, i * 100);
-  setTimeout(function(){
-    console.log('====== SAMNEL DIAG (snapshots @ 100ms, 10s window) ======');
-    console.table(snaps);
-    console.log('====== fetch calls ======');
-    console.table(fetches);
-    // also look at <main> animation state
-    var m = document.querySelector('main');
-    if (m) {
-      console.log('main computed animation:', getComputedStyle(m).animation);
-      console.log('main computed opacity:',  getComputedStyle(m).opacity);
-    }
-    window.__samnel_diag = { snaps: snaps, fetches: fetches };
-    console.log('Export: copy(JSON.stringify(__samnel_diag, null, 2))');
-  }, 10500);
-})();
-// ========== END DIAGNOSTIC ==========
 
 // Bottom-menu fallback observer. Two IntersectionObservers:
 // (1) on .banner-cta — show menu only when banner-cta is out of viewport
