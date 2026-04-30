@@ -1,5 +1,22 @@
 <!DOCTYPE html><html  lang="en-GB"><head>
 <!-- STATIC-DEPLOY-PATCH-START -->
+<style>
+  /* Bottom-menu fallback: Fluid's GSAP ScrollTrigger that toggles
+     .menu visibility doesn't fire on every page (works on the homepage
+     and product page, doesn't on the about page). When IntersectionObserver
+     detects the <footer> in viewport, we add .samnel-menu-open to .app and
+     this rule shows the .menu overlay — same end state as GSAP autoAlpha. */
+  .app.samnel-menu-open .menu[data-v-83565617] {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transition: opacity .5s ease, visibility .5s ease;
+  }
+  .app.samnel-menu-open .menu[data-v-83565617] .background[data-v-83565617] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+</style>
 <script>
 (function(){
   var origFetch = window.fetch;
@@ -38,6 +55,24 @@
     }
     return origFetch.call(this, input, init);
   };
+})();
+
+// Bottom-menu fallback observer.
+(function(){
+  function attach(){
+    var footer = document.querySelector('footer');
+    var app = document.querySelector('.app');
+    if (!footer || !app) { setTimeout(attach, 200); return; }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) app.classList.add('samnel-menu-open');
+        else app.classList.remove('samnel-menu-open');
+      });
+    }, { rootMargin: '0px 0px 80px 0px' });
+    io.observe(footer);
+  }
+  if (document.readyState === 'complete') attach();
+  else window.addEventListener('load', attach, { once: true });
 })();
 </script>
 <!-- STATIC-DEPLOY-PATCH-END -->
