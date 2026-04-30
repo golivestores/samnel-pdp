@@ -55,14 +55,22 @@
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  // Synthesize an empty payload response — for any /<route>/_payload.json
-  // request. We don't host these (the prerendered HTML already has the
-  // payload data inline as __NUXT_DATA__), but Nuxt still tries to fetch
-  // them for nav prefetch / SSR-validation. Nuxt 3 parses payloads via
-  // `devalue` (NOT JSON.parse) — the format is a wrapping array with
-  // reference indices, not a plain object. The minimum valid devalue
-  // payload is "[{}]" which parses to an empty object — keeps Nuxt happy.
+  // Synthesize the _payload.json response by reusing the embedded
+  // __NUXT_DATA__ script tag from the HTML. They're literally the same
+  // devalue payload (Nuxt embeds it inline so the page can hydrate
+  // without a roundtrip; the fetch is a freshness-check). Returning the
+  // exact same content gives Nuxt the full route data — no fallback to
+  // the 404 component during the brief pre-hydration window.
   function synthPayload(){
+    var nuxtData = document.getElementById('__NUXT_DATA__');
+    if (nuxtData && nuxtData.textContent) {
+      return new Response(nuxtData.textContent, {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    // Fallback if NUXT_DATA isn't in DOM yet (very early init): minimum
+    // valid devalue so JSON.parse + devalue.parse don't throw.
     return new Response('[{}]', {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
