@@ -5,6 +5,18 @@
   .intro { display: none !important; }
   main:before, .is-overlay main:before { display: none !important; opacity: 0 !important; }
 
+  /* Mask the brief Nuxt 404 error component flash that appears during the
+     pre-hydration window. Vue's router momentarily falls back to the error
+     component before resolving the route — pure CSS hide is enough; no JS
+     restore (that would interfere with Vue's reactive system once it
+     replaces the error with the real route component). */
+  section.error,
+  [data-nuxt-error],
+  .nuxt-error {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
   /* Bottom-menu fallback: Fluid's GSAP ScrollTrigger that toggles
      .menu visibility doesn't fire on every page (works on the homepage
      and product page, doesn't on the about page). When IntersectionObserver
