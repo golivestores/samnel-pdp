@@ -1153,6 +1153,20 @@ window.addEventListener('unhandledrejection', function(e) {
   .wordmark[data-v-6ab2abd9] {
     -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1523 254'%3E%3Ctext x='761' y='220' text-anchor='middle' font-family='Georgia, Times, serif' font-style='italic' font-weight='700' font-size='320' fill='black'%3ESamnel%3C/text%3E%3C/svg%3E") !important;
     mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1523 254'%3E%3Ctext x='761' y='220' text-anchor='middle' font-family='Georgia, Times, serif' font-style='italic' font-weight='700' font-size='320' fill='black'%3ESamnel%3C/text%3E%3C/svg%3E") !important;
+    /* Nuxt's defaults set mask-position: bottom 11rem left 50% + mask-size:
+       152.3rem × 25.4rem — meaning the mask box starts at the wordmark's
+       horizontal midpoint and stretches 152rem to the right (mostly off-
+       screen). Original "Fluid Glass" paths spanned the full viewBox
+       edge-to-edge so something was visible; our centered "Samnel" text
+       only fills the middle of the viewBox, so nearly all of it lands
+       off-screen. Center the mask on the element instead, and scale to
+       contain so the full Samnel wordmark is visible. */
+    -webkit-mask-position: center !important;
+    mask-position: center !important;
+    -webkit-mask-size: contain !important;
+    mask-size: contain !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
   }
 
   /* Article card thumbnails: container has aspect-ratio:365/244 (~1.5)
@@ -1454,6 +1468,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- NEWS-COPY-OVERLAY-END -->
+
+
 
 
 
