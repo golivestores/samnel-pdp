@@ -231,6 +231,17 @@
     background: transparent !important;
     margin: 0 !important;
   }
+  /* Nuxt's stylesheet sets .column:nth-child(2){overflow:hidden} and pins
+     the text column to height:100svh — so when our 1:1 square frame is
+     taller than 100svh minus padding-top, its bottom gets clipped right
+     where the next section starts. Let the frame extend out of the column
+     and give the section breathing room before the tabs section below. */
+  .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) {
+    overflow: visible !important;
+  }
+  @media (min-width: 601px) {
+    .product-header[data-v-8aa832f8] { margin-bottom: 12rem !important; }
+  }
   /* Manifesto banner-cta: full-width (no cream margin around) */
   .banner-cta[data-v-f377522f] { margin: 0 !important; }
   .banner-cta[data-v-f377522f] .container[data-v-f377522f] {
@@ -1256,6 +1267,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
