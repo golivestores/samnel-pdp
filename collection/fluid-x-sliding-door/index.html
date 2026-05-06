@@ -1775,6 +1775,9 @@ window.addEventListener('unhandledrejection', function(e) {
 
 
 
+
+
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluid Glass - Fluid X Sliding Door</title>
@@ -1871,7 +1874,7 @@ window.addEventListener('unhandledrejection', function(e) {
     if (document.getElementById("samnel-menu-trigger-css")) return;
     var st = document.createElement("style");
     st.id = "samnel-menu-trigger-css";
-    st.textContent = ".app .menu[data-v-83565617]{visibility:hidden;transform:translateX(-200px);pointer-events:none;opacity:0;transition:transform .5s ease,opacity .5s ease,visibility .5s;}.app.samnel-menu-on .menu[data-v-83565617]{visibility:visible !important;transform:translateX(0) !important;pointer-events:auto !important;opacity:1 !important;}";
+    st.textContent = ".app .menu[data-v-83565617]{visibility:hidden;transform:translate(-50%, 200px) !important;pointer-events:none;opacity:0;transition:transform .5s ease,opacity .5s ease,visibility .5s;}.app.samnel-menu-on .menu[data-v-83565617]{visibility:visible !important;transform:translate(-50%, 0) !important;pointer-events:auto !important;opacity:1 !important;}";
     document.head.appendChild(st);
     var app = document.querySelector(".app");
     if (!app) return;
