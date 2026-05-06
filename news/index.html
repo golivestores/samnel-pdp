@@ -1262,6 +1262,79 @@ window.addEventListener('unhandledrejection', function(e) {
     }
   }
 
+  // ===== Vanilla JS slider for the news-page first banner =====
+  // Wayback's archived bundles are 404 (Wayback never crawled them), so
+  // Vue's slider runtime never wires up. Default CSS leaves every .slide
+  // at visibility:hidden — page renders empty. Take over the interaction
+  // ourselves: show one slide at a time, advance on prev/next click, auto-
+  // rotate every 6s, drive the indicator + progress bar in sync.
+  function buildSlider() {
+    var section = document.querySelector('.slider[data-v-48027037]');
+    if (!section) return;
+    if (section.dataset.samnelSlider === '1') return;
+    var slides = section.querySelectorAll('.slide[data-v-48027037]');
+    var assets = section.querySelectorAll('.background[data-v-48027037] .asset[data-v-48027037]');
+    var indicator = section.querySelector('.indicator[data-v-48027037]');
+    var progressBar = section.querySelector('.progress-bar[data-v-48027037]');
+    var btns = section.querySelectorAll('.nav .button[data-v-48027037]');
+    if (slides.length === 0 || btns.length < 2) return;
+    section.dataset.samnelSlider = '1';
+
+    var total = slides.length;
+    var current = 0;
+    var auto = null;
+
+    function pad(n) { return ('0' + n).slice(-2); }
+
+    function show(i) {
+      current = ((i % total) + total) % total;
+      // Slide visibility / opacity: only the active one is visible
+      slides.forEach(function(s, idx) {
+        var on = idx === current;
+        s.style.visibility = on ? 'visible' : 'hidden';
+        s.style.opacity = on ? '1' : '0';
+        s.style.transition = 'opacity .6s ease';
+        s.style.zIndex = on ? '2' : '1';
+      });
+      // Background asset switch
+      assets.forEach(function(a, idx) {
+        var on = idx === current;
+        a.style.opacity = on ? '1' : '0';
+        a.style.transition = 'opacity .6s ease';
+        a.style.zIndex = on ? '2' : '1';
+      });
+      // Indicator: "01 / 03"
+      if (indicator) indicator.textContent = pad(current + 1) + ' / ' + pad(total);
+      // Progress bar: scaleX = (current+1)/total
+      if (progressBar) {
+        progressBar.style.transition = 'transform .6s cubic-bezier(.77,0,.175,1)';
+        progressBar.style.transform = 'scaleX(' + ((current + 1) / total) + ')';
+        progressBar.style.transformOrigin = 'left center';
+      }
+    }
+
+    function next() { show(current + 1); }
+    function prev() { show(current - 1); }
+    function startAuto() {
+      stopAuto();
+      auto = setInterval(next, 6000);
+    }
+    function stopAuto() {
+      if (auto) { clearInterval(auto); auto = null; }
+    }
+
+    // Wire arrow buttons. btns[0] = prev (rotated 180deg), btns[1] = next.
+    btns[0].addEventListener('click', function(e){ e.preventDefault(); prev(); startAuto(); });
+    btns[1].addEventListener('click', function(e){ e.preventDefault(); next(); startAuto(); });
+
+    // Pause auto-rotate on hover, resume on leave.
+    section.addEventListener('mouseenter', stopAuto);
+    section.addEventListener('mouseleave', startAuto);
+
+    show(0);
+    startAuto();
+  }
+
   var VIDEO_SRC = "/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
   // Inject a looping muted brand video + dark overlay as the background
   // of the "Every great formula begins with understanding" .banner-cta
@@ -1293,9 +1366,11 @@ window.addEventListener('unhandledrejection', function(e) {
   }
   function start() {
     applyOverrides(document.body);
+    buildSlider();
     buildBannerVideo();
     var obs = new MutationObserver(function(){
       applyOverrides(document.body);
+      buildSlider();
       buildBannerVideo();
     });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -1308,6 +1383,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- NEWS-COPY-OVERLAY-END -->
+
+
 
 
 
