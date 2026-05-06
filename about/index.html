@@ -1169,6 +1169,69 @@ window.addEventListener('unhandledrejection', function(e) {
     background: var(--brand-blue-deep, #1e1c5e) !important;
     border-color: var(--brand-blue-deep, #1e1c5e) !important;
   }
+
+  /* ===== "Every great formula begins with understanding" banner-cta =====
+     Match the product page treatment: drop the brand-blue container
+     background and the orange decorative SVG / circles, drive the
+     background with a looping muted brand video, and switch the orange
+     Get In Touch chip to brand pink for visual continuity with the
+     pink .ch-header. */
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] {
+    background: #000 !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video,
+  .banner-cta[data-v-f377522f] .ph-banner-video-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video {
+    object-fit: cover !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video-overlay {
+    background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.55) 100%) !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > h2,
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > p,
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > .buttons {
+    position: relative !important;
+    z-index: 2 !important;
+  }
+  /* Hide the orange decorative SVG lines and JS-injected orange circles */
+  .banner-cta[data-v-f377522f] .banner-cta-svg[data-v-f377522f],
+  .banner-cta[data-v-f377522f] .ch-banner-circles {
+    display: none !important;
+  }
+  /* Get In Touch button: orange → brand pink */
+  .banner-cta[data-v-f377522f] .is-black[data-v-84672489] {
+    background: #c7387d !important;
+    border-color: #c7387d !important;
+  }
+  .banner-cta[data-v-f377522f] .is-black[data-v-84672489]:hover {
+    background: #a8275f !important;
+    border-color: #a8275f !important;
+  }
+  /* Restore proper hero-sized container so the video covers the section
+     top-to-bottom (samnel-ref's compression made sense for a flat chip
+     but starves the video). Desktop only — mobile keeps Nuxt's natural
+     padding. Also drop the -200px negative margin overlap. */
+  @media (min-width: 601px) {
+    .banner-cta[data-v-f377522f] {
+      margin-bottom: 0 !important;
+    }
+    .banner-cta[data-v-f377522f] .container[data-v-f377522f] {
+      padding-top: 14rem !important;
+      padding-bottom: 14rem !important;
+    }
+  }
 </style>
 <!-- SAMNEL-INJECT-END -->
 
@@ -1245,9 +1308,41 @@ window.addEventListener('unhandledrejection', function(e) {
     v.setAttribute('data-samnel-swapped', '1');
     try { v.load(); } catch (e) {}
   }
+  // Inject a looping muted brand video + dark overlay as the background
+  // of the "Every great formula begins with understanding" .banner-cta
+  // section. Mirrors the product page treatment (inject.py PRODUCT_EXTRAS).
+  // Idempotent: skips if .ph-banner-video already exists.
+  function buildBannerVideo() {
+    var container = document.querySelector('.banner-cta[data-v-f377522f] .container[data-v-f377522f]');
+    if (!container) return;
+    if (container.querySelector('.ph-banner-video')) return;
+    var video = document.createElement('video');
+    video.className = 'ph-banner-video';
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('aria-hidden', 'true');
+    var src = document.createElement('source');
+    src.src = VIDEO_SRC;
+    src.type = 'video/mp4';
+    video.appendChild(src);
+    var overlay = document.createElement('div');
+    overlay.className = 'ph-banner-video-overlay';
+    container.insertBefore(overlay, container.firstChild);
+    container.insertBefore(video, container.firstChild);
+    try { video.play(); } catch (e) {}
+  }
   function start() {
     applyOverrides(document.body);
-    var obs = new MutationObserver(function(){ applyOverrides(document.body); });
+    buildBannerVideo();
+    var obs = new MutationObserver(function(){
+      applyOverrides(document.body);
+      buildBannerVideo();
+    });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
 
     // Defer the video swap until after window 'load' (post-hydration)
@@ -1263,6 +1358,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
