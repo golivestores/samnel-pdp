@@ -1372,6 +1372,20 @@ window.addEventListener('unhandledrejection', function(e) {
     position: relative !important;
     overflow: hidden !important;
   }
+  /* samnel-ref's earlier height-compression (padding-top:4rem;
+     padding-bottom:0; margin-bottom:-200px) made sense when the section
+     was just a colored chip. With a video background we want a proper
+     hero-sized box so the clip plays at full height, top to bottom of
+     the section. Desktop only — mobile keeps Nuxt's natural padding. */
+  @media (min-width: 601px) {
+    .banner-cta[data-v-f377522f] {
+      margin-bottom: 0 !important;
+    }
+    .banner-cta[data-v-f377522f] .container[data-v-f377522f] {
+      padding-top: 14rem !important;
+      padding-bottom: 14rem !important;
+    }
+  }
   .banner-cta[data-v-f377522f] .ph-banner-video,
   .banner-cta[data-v-f377522f] .ph-banner-video-overlay {
     position: absolute !important;
@@ -1710,6 +1724,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 
 
 
