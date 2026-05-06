@@ -1243,32 +1243,36 @@ window.addEventListener('unhandledrejection', function(e) {
       }
     }
   }
-  // ===== Article body placeholder takeover =====
-  // Until original Samnel article copy is provided, replace each .text
-  // section's .richtext body and the FAQ Q&A blocks with a clean
-  // placeholder so the page renders as a Samnel-branded article shell
-  // without showing the upstream long-form prose. Idempotent.
-  var BODY_PLACEHOLDER = '<p class="ph-article-placeholder">Article content in development — original Samnel material coming soon.</p>';
-  function clearArticleBody() {
+  // ===== Article body / FAQ runtime fill =====
+  // Vue hydrates from the upstream Storyblok article record (the slug
+  // is left intact in __NUXT_DATA__ so the API call succeeds). On
+  // hydration Vue re-renders .text/.faq sections from that record,
+  // overwriting our build-time Samnel content. The MutationObserver
+  // tick re-applies the Samnel content on every Vue re-render via
+  // these two functions, reading from window.SAMNEL_SECTIONS /
+  // SAMNEL_FAQS that an earlier inline script exposes.
+  function fillArticleBody() {
+    if (!window.SAMNEL_SECTIONS) return;
     var richtexts = document.querySelectorAll('.text[data-v-abfd87e7] .richtext[data-v-abfd87e7]');
-    richtexts.forEach(function(rt){
-      if (rt.dataset.samnelCleared === '1') return;
-      rt.innerHTML = BODY_PLACEHOLDER;
-      rt.dataset.samnelCleared = '1';
-    });
-    // FAQ blocks: hide them entirely until original Samnel FAQ content
-    // is written. The button + plus-icon stays visible (avoids layout
-    // collapse), the question label is replaced, and the answer body
-    // is replaced with the same placeholder.
+    for (var i = 0; i < richtexts.length && i < window.SAMNEL_SECTIONS.length; i++) {
+      var html = window.SAMNEL_SECTIONS[i];
+      if (richtexts[i].innerHTML !== html) {
+        richtexts[i].innerHTML = html;
+      }
+    }
+    if (!window.SAMNEL_FAQS) return;
     var faqBlocks = document.querySelectorAll('.faq[data-v-f71aede1] .block[data-v-f71aede1]');
-    faqBlocks.forEach(function(b, idx){
-      if (b.dataset.samnelCleared === '1') return;
-      var titleEl = b.querySelector('.title strong, .title');
-      if (titleEl) titleEl.textContent = 'FAQ entry ' + (idx + 1) + ' — coming soon';
-      var rt = b.querySelector('.richtext');
-      if (rt) rt.innerHTML = BODY_PLACEHOLDER;
-      b.dataset.samnelCleared = '1';
-    });
+    for (var j = 0; j < faqBlocks.length && j < window.SAMNEL_FAQS.length; j++) {
+      var f = window.SAMNEL_FAQS[j];
+      var titleEl = faqBlocks[j].querySelector('.title strong');
+      if (titleEl && titleEl.textContent.trim() !== f.q) {
+        titleEl.textContent = f.q;
+      }
+      var rt = faqBlocks[j].querySelector('.richtext');
+      if (rt && rt.innerHTML !== f.a) {
+        rt.innerHTML = f.a;
+      }
+    }
   }
 
   var VIDEO_SRC = "/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
@@ -1302,11 +1306,11 @@ window.addEventListener('unhandledrejection', function(e) {
   }
   function start() {
     applyOverrides(document.body);
-    clearArticleBody();
+    fillArticleBody();
     buildBannerVideo();
     var obs = new MutationObserver(function(){
       applyOverrides(document.body);
-      clearArticleBody();
+      fillArticleBody();
       buildBannerVideo();
     });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -1319,6 +1323,26 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ARTICLE-COPY-OVERLAY-END -->
+<script>
+(function(){
+  var TARGET = 'https://fluid.glass/news/about-calcifediol/';
+  var ORANGERY = 'a-guide-to-getting-glazing-right-for-orangery-extensions';
+  function pin(u) {
+    if (typeof u === 'string' && u.indexOf(ORANGERY) !== -1) return TARGET;
+    return u;
+  }
+  var oR = history.replaceState.bind(history);
+  var oP = history.pushState.bind(history);
+  history.replaceState = function(s, t, u){ return oR(s, t, pin(u)); };
+  history.pushState    = function(s, t, u){ return oP(s, t, pin(u)); };
+  if (location.pathname.indexOf(ORANGERY) !== -1) {
+    oR(history.state, '', TARGET);
+  }
+})();
+window.SAMNEL_SECTIONS = ["<p>Vitamin D plays a central role in bone health, immune function and overall wellbeing \u2014 yet a significant proportion of adults worldwide fall short of optimal serum levels. The challenge isn\u2019t simply taking a supplement; it\u2019s choosing the right form, the right dose and the right quality so that supplementation actually moves the number.</p><p>The sections below summarise how Samnel approaches that question, what each formulation choice means in practice, and how to use the products day to day.</p>", "<p><strong>What is Calcifediol?</strong></p><p>Calcifediol is a pre-activated form of vitamin D, specifically 25-hydroxyvitamin D3, which the liver produces from vitamin D3. It is more potent and rapidly raises blood vitamin D levels than standard supplements. Healthcare providers sometimes use it to correct deficiencies or support bone and immune health efficiently.</p>", "<p><strong>Forms of Vitamin D</strong></p><p>Vitamin D exists mainly as D2 (ergocalciferol) and D3 (cholecalciferol). D2 comes from plant sources, while D3 is synthesized in the skin or derived from animal sources. D3 is generally more effective at raising blood levels of 25-hydroxyvitamin D and maintaining long-term vitamin D status.</p>", "<p><strong>Daily Dose &amp; Safety Considerations</strong></p><p>The recommended daily intake of vitamin D varies with age, health status, and sun exposure. Excess intake can lead to toxicity, causing hypercalcemia and kidney problems. Monitoring blood levels ensures safe supplementation, and healthcare providers often adjust doses to meet individual needs safely.</p>", "<p><strong>Special Populations</strong></p><p>Certain groups, like the elderly, pregnant women, and people with limited sun exposure, may need higher vitamin D intake. Individuals with chronic illnesses, malabsorption disorders, or obesity also require careful monitoring. Tailored supplementation ensures adequate levels and reduces risk of complications associated with deficiency.</p>", "<p><strong>The Choices That Matter Most</strong></p><p>Choosing the right form, dose, and quality of vitamin D is critical. Supplements with verified purity, appropriate potency, and proven bioavailability optimize absorption. Decisions should be guided by blood tests, health goals, and professional advice to achieve safe and effective outcomes.</p>", "<p><strong>What Good Supplementation Actually Achieves</strong></p><p>Effective vitamin D supplementation supports bone strength, immune function, and muscle health. Consistent, evidence-based dosing helps prevent deficiencies and related diseases, improving overall well-being. Beyond physical health, maintaining optimal vitamin D levels may positively impact mood and energy.</p>", "<p><strong>What to Expect From a Samnel Specification</strong></p><p>A Samnel specification outlines precise supplement composition, dosage instructions, and quality standards. Users can expect clarity on active ingredients, bioavailability, and safety guidelines. It ensures that supplementation meets regulatory standards and supports predictable, measurable health benefits.</p>", "<p><strong>Onboarding and Long-Term Use</strong></p><p>Starting vitamin D supplementation requires monitoring baseline levels, adjusting doses gradually, and understanding interactions with medications or conditions. Long-term use involves periodic blood tests, adherence to recommended doses, and lifestyle integration, ensuring sustainable benefits while avoiding potential toxicity or deficiency recurrence.</p>"];
+  window.SAMNEL_FAQS = [{"q": "What is the difference between Vitamin D2 and D3?", "a": "<p>Vitamin D2 comes from plant sources, while D3 is produced in the skin from sunlight or derived from animals. D3 is generally more effective at raising blood vitamin D levels and maintaining long-term status, making it the preferred option for most supplementation plans.</p>"}, {"q": "How quickly does Calcifediol work?", "a": "<p>Calcifediol is a pre-activated form of vitamin D that raises blood levels faster than traditional vitamin D3. Users often see measurable increases within days, making it ideal for correcting deficiencies or addressing urgent clinical needs under professional supervision.</p>"}, {"q": "Can I take too much vitamin D?", "a": "<p>Yes, excessive vitamin D can lead to hypercalcemia, kidney stones, or other complications. Always follow recommended daily doses and check blood levels regularly. Individual needs vary, so professional guidance ensures safety and avoids long-term risks associated with over-supplementation.</p>"}, {"q": "Who should consider vitamin D supplementation?", "a": "<p>People with limited sun exposure, older adults, pregnant or breastfeeding women, individuals with obesity, or those with malabsorption issues may require supplementation. Regular monitoring and tailored dosing help maintain optimal levels and support bone, immune, and muscle health.</p>"}, {"q": "How should I take vitamin D for best absorption?", "a": "<p>Vitamin D is fat-soluble, so taking it with meals containing healthy fats improves absorption. Consistency matters, and splitting doses or choosing daily versus weekly supplementation can be guided by blood tests and personal health goals for maximum effectiveness.</p>"}, {"q": "What benefits can I realistically expect from vitamin D supplementation?", "a": "<p>Proper supplementation supports bone strength, immune function, muscle performance, and overall well-being. While it is not a cure-all, maintaining optimal vitamin D levels reduces the risk of deficiency-related conditions and may contribute to better mood and energy.</p>"}, {"q": "How long should I continue supplementation?", "a": "<p>Duration depends on your baseline vitamin D levels, health status, and lifestyle. Some people need short-term correction, while others may require long-term maintenance. Periodic blood tests help determine when to adjust or pause supplementation safely.</p>"}, {"q": "How is Samnel manufactured and what quality controls are in place?", "a": "<p>Samnel is manufactured in Singapore by Kingmao International. The facility is FSSC 22000 certified and holds multiple GMP certifications, with regulatory oversight from the FDA, SFA and HSA. Every production batch is independently tested by SGS Singapore for purity, potency and safety.</p>"}];
+</script>
+
 <script>
 (function(){
   var TARGET = 'https://fluid.glass/news/about-calcifediol/';
