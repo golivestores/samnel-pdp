@@ -1291,6 +1291,8 @@ window.addEventListener('unhandledrejection', function(e) {
 
 
 
+
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluid Glass - About</title>
@@ -1392,7 +1394,7 @@ window.addEventListener('unhandledrejection', function(e) {
     if (document.getElementById("samnel-menu-trigger-css")) return;
     var st = document.createElement("style");
     st.id = "samnel-menu-trigger-css";
-    st.textContent = ".app .menu[data-v-83565617]{visibility:hidden;transform:translate(-50%, 200px) !important;pointer-events:none;opacity:0;transition:transform .5s ease,opacity .5s ease,visibility .5s;}.app.samnel-menu-on .menu[data-v-83565617]{visibility:visible !important;transform:translate(-50%, 0) !important;pointer-events:auto !important;opacity:1 !important;}";
+    st.textContent = ".menu[data-v-83565617]{left:50% !important;margin-left:-16rem !important;}@media (min-width: 601px){.menu[data-v-83565617]{margin-left:-20rem !important;}}.app .menu[data-v-83565617]{visibility:hidden;transform:translateY(200px) !important;pointer-events:none;opacity:0;transition:transform .5s ease,opacity .5s ease,visibility .5s;}.app.samnel-menu-on .menu[data-v-83565617]{visibility:visible !important;transform:translateY(0) !important;pointer-events:auto !important;opacity:1 !important;}";
     document.head.appendChild(st);
     var app = document.querySelector(".app");
     if (!app) return;
