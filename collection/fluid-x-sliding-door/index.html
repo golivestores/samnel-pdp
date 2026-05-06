@@ -206,16 +206,30 @@
   /* Per-page top-center wordmark layer (peeks through when our custom header
      hides on mobile scroll). Hide entirely. */
   .page-header[data-v-613436a9] { display: none !important; visibility: hidden !important; }
-  /* Product page hero left column: shrink the gif/diagram so it doesn't crop full-bleed.
-     Force a square (1:1) box so the source image's portrait ratio (3946x5920) doesn't
-     drive the column height — the image fits inside via object-fit:contain. */
-  .product-header[data-v-8aa832f8] .base-image[data-v-8aa832f8] {
-    object-fit: contain !important;
-    background: var(--brand-cream) !important;
-    padding: 18% !important;
-    box-sizing: border-box !important;
+  /* Product page hero main image: a 1:1 square frame holds the <img>.
+     buildThumbStrip() in inject.py wraps the img in .ph-main-image-frame
+     at runtime; the wrapper enforces the square shape via aspect-ratio,
+     and the img fills it via object-fit:cover so any source photo
+     (portrait, landscape, or square) renders as a tidy square crop. */
+  .product-header[data-v-8aa832f8] .ph-main-image-frame {
+    position: relative !important;
+    width: 100% !important;
     aspect-ratio: 1 / 1 !important;
-    height: auto !important;
+    overflow: hidden !important;
+    background: var(--brand-cream) !important;
+    flex: 1 1 auto !important;
+    align-self: flex-start !important;
+  }
+  .product-header[data-v-8aa832f8] .ph-main-image-frame .base-image[data-v-8aa832f8] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    aspect-ratio: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    margin: 0 !important;
   }
   /* Manifesto banner-cta: full-width (no cream margin around) */
   .banner-cta[data-v-f377522f] { margin: 0 !important; }
@@ -1416,6 +1430,23 @@ window.addEventListener('unhandledrejection', function(e) {
     '黄色胶囊.png'
   ];
 
+  // Wrap the product-header main image in a 1:1 aspect-ratio frame so the
+  // visible area is always square regardless of the source photo's native
+  // dimensions. (Setting aspect-ratio directly on <img> fights its intrinsic
+  // aspect ratio in Nuxt's stylesheet — wrapping is more reliable.)
+  // Idempotent: skips if the img is already inside .ph-main-image-frame.
+  function wrapMainImageInFrame() {
+    var imgs = document.querySelectorAll('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) img.base-image');
+    imgs.forEach(function(img){
+      var p = img.parentNode;
+      if (p && p.classList && p.classList.contains('ph-main-image-frame')) return;
+      var frame = document.createElement('div');
+      frame.className = 'ph-main-image-frame';
+      p.insertBefore(frame, img);
+      frame.appendChild(img);
+    });
+  }
+
   function buildThumbStrip() {
     var imgCol = document.querySelector('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2)');
     var textCol = document.querySelector('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:first-child');
@@ -1461,9 +1492,11 @@ window.addEventListener('unhandledrejection', function(e) {
 
   function start() {
     buildProductExtras();
+    wrapMainImageInFrame();
     buildThumbStrip();
     var obs = new MutationObserver(function(){
       buildProductExtras();
+      wrapMainImageInFrame();
       buildThumbStrip();
     });
     obs.observe(document.documentElement, { childList: true, subtree: true });
@@ -1576,6 +1609,12 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
+
+
+
 
 
 
