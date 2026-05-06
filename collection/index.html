@@ -1370,6 +1370,36 @@ window.addEventListener('unhandledrejection', function(e) {
       }
     }
   }
+
+  // The "Adult D₃+K₂" carousel below the 4-tab overview shows 3 product
+  // cards (originally Fluid X Sliding/Pivot/Vertical). Replace the H3
+  // titles by INDEX so each card represents one of the three SKU lines:
+  // adult formula / children formula / family bundle. The eyebrow above
+  // the carousel is also tightened from "Adult D₃+K₂" to "Featured
+  // formulas" since the cards span all three categories now.
+  var CAROUSEL_CARD_TITLES = [
+    'Adult D₃ + K₂ formula',
+    'Children\'s D₃ liquid stick',
+    'Family bundle (Adult + Children)'
+  ];
+  function applyCarouselTitles() {
+    // The carousel section uses data-v-60d6c971. Each card lives in
+    // .carousel .wrapper .blocks > div, with the title inside h3.heading.
+    var headings = document.querySelectorAll('.carousel[data-v-60d6c971] .wrapper .blocks > div h3.heading');
+    if (headings.length >= 3) {
+      for (var i = 0; i < CAROUSEL_CARD_TITLES.length && i < headings.length; i++) {
+        if (headings[i].textContent.trim() !== CAROUSEL_CARD_TITLES[i]) {
+          headings[i].textContent = CAROUSEL_CARD_TITLES[i];
+        }
+      }
+    }
+    // Eyebrow above the carousel ("Adult D₃ + K₂" — samnel-ref's swap of
+    // "Premium collection"). Re-label to reflect the mixed cards.
+    var eyebrow = document.querySelector('.carousel[data-v-60d6c971] .head h2.base-title');
+    if (eyebrow && eyebrow.textContent.trim() !== 'Featured formulas') {
+      eyebrow.textContent = 'Featured formulas';
+    }
+  }
   var VIDEO_SRC = "/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
   // Inject a looping muted brand video + dark overlay as the background
   // of the "Every great formula begins with understanding" .banner-cta
@@ -1402,10 +1432,12 @@ window.addEventListener('unhandledrejection', function(e) {
   function start() {
     applyOverrides(document.body);
     applyTabLabels();
+    applyCarouselTitles();
     buildBannerVideo();
     var obs = new MutationObserver(function(){
       applyOverrides(document.body);
       applyTabLabels();
+      applyCarouselTitles();
       buildBannerVideo();
     });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -1418,6 +1450,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COLLECTION-COPY-OVERLAY-END -->
+
+
 
 
 
