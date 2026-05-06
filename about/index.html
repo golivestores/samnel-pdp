@@ -550,23 +550,13 @@
     height: 100%;
     fill: currentcolor;
   }
-  /* === Decorative circle accents (fixed background, behind content) === */
-  .ch-circles {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
-    mix-blend-mode: multiply;
-    opacity: .55;
-  }
-  .ch-circles svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
+  /* === Decorative circle accents — disabled per brand decision ===
+     Originally a fixed-position layer of pink/orange/yellow/blue/gold
+     circles painted by buildCircles() / paintShowroomCircles(). Now
+     hidden everywhere on the product page (and in the manifesto
+     showroom band) so the cleaner photo + video backgrounds carry
+     the page on their own. */
+  .ch-circles, .ch-section-circles { display: none !important; }
   /* Custom top header */
   .ch-header {
     position: fixed;
@@ -1273,6 +1263,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
