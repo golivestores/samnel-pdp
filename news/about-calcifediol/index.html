@@ -1319,6 +1319,24 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ARTICLE-COPY-OVERLAY-END -->
+<script>
+(function(){
+  var TARGET = 'https://fluid.glass/news/about-calcifediol/';
+  var ORANGERY = 'a-guide-to-getting-glazing-right-for-orangery-extensions';
+  function pin(u) {
+    if (typeof u === 'string' && u.indexOf(ORANGERY) !== -1) return TARGET;
+    return u;
+  }
+  var oR = history.replaceState.bind(history);
+  var oP = history.pushState.bind(history);
+  history.replaceState = function(s, t, u){ return oR(s, t, pin(u)); };
+  history.pushState    = function(s, t, u){ return oP(s, t, pin(u)); };
+  if (location.pathname.indexOf(ORANGERY) !== -1) {
+    oR(history.state, '', TARGET);
+  }
+})();
+</script>
+
 
 
 
