@@ -1361,6 +1361,56 @@ window.addEventListener('unhandledrejection', function(e) {
     .ph-thumbs { gap: .6rem; padding: 0 .6rem; margin-top: 1.2rem; }
     .ph-thumb { width: 6rem; height: 6rem; }
   }
+
+  /* ===== "Why Samnel" banner-cta — product page only =====
+     Replace the brand-blue background and orange decorative SVG/circles
+     with a looping brand video clip. A dark scrim sits above the video
+     so the white headline + body text stays legible. */
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] {
+    background: #000 !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video,
+  .banner-cta[data-v-f377522f] .ph-banner-video-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video {
+    object-fit: cover !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+  }
+  .banner-cta[data-v-f377522f] .ph-banner-video-overlay {
+    background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.55) 100%) !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+  }
+  /* Lift the original text content above the video + overlay layers */
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > h2,
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > p,
+  .banner-cta[data-v-f377522f] .container[data-v-f377522f] > .buttons {
+    position: relative !important;
+    z-index: 2 !important;
+  }
+  /* Hide the orange decorative SVG lines and the JS-injected orange circles */
+  .banner-cta[data-v-f377522f] .banner-cta-svg[data-v-f377522f],
+  .banner-cta[data-v-f377522f] .ch-banner-circles {
+    display: none !important;
+  }
+  /* GET IN TOUCH button: was orange — switch to brand pink for consistency
+     with the new pink .ch-header. (No more orange anywhere on the page.) */
+  .banner-cta[data-v-f377522f] .is-black[data-v-84672489] {
+    background: #c7387d !important;
+    border-color: #c7387d !important;
+  }
+  .banner-cta[data-v-f377522f] .is-black[data-v-84672489]:hover {
+    background: #a8275f !important;
+    border-color: #a8275f !important;
+  }
 </style>
 <script>
 (function(){
@@ -1510,14 +1560,45 @@ window.addEventListener('unhandledrejection', function(e) {
     title.parentNode.insertBefore(mobileStrip, title.nextSibling);
   }
 
+  // Inject a looping muted brand video (and a dark overlay) as the
+  // background of the "Why Samnel" .banner-cta section. Idempotent: skips
+  // if the .ph-banner-video element is already inside the container.
+  var BANNER_VIDEO_SRC = "/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
+  function buildBannerVideo() {
+    var container = document.querySelector('.banner-cta[data-v-f377522f] .container[data-v-f377522f]');
+    if (!container) return;
+    if (container.querySelector('.ph-banner-video')) return;
+    var video = document.createElement('video');
+    video.className = 'ph-banner-video';
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('aria-hidden', 'true');
+    var src = document.createElement('source');
+    src.src = BANNER_VIDEO_SRC;
+    src.type = 'video/mp4';
+    video.appendChild(src);
+    var overlay = document.createElement('div');
+    overlay.className = 'ph-banner-video-overlay';
+    container.insertBefore(overlay, container.firstChild);
+    container.insertBefore(video, container.firstChild);
+    try { video.play(); } catch (e) {}
+  }
+
   function start() {
     buildProductExtras();
     wrapMainImageInFrame();
     buildThumbStrip();
+    buildBannerVideo();
     var obs = new MutationObserver(function(){
       buildProductExtras();
       wrapMainImageInFrame();
       buildThumbStrip();
+      buildBannerVideo();
     });
     obs.observe(document.documentElement, { childList: true, subtree: true });
   }
@@ -1629,6 +1710,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 
 
 
