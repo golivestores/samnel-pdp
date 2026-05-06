@@ -1137,6 +1137,12 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <style>
+  /* News page (Wayback build) uses data-v-8384f538 for the bottom HOME
+     pill, where current builds use data-v-46983abb. samnel-ref's hide
+     rule targets the latter so the original Fluid floating pill leaks
+     onto the news page bottom-center. Hide it explicitly for this scope. */
+  .header[data-v-8384f538] { display: none !important; }
+
   /* ===== "Where science meets wellness" banner-cta =====
      Match the product page treatment: drop the brand-blue container
      background and the orange decorative SVG / circles, drive the
@@ -1383,6 +1389,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- NEWS-COPY-OVERLAY-END -->
+
+
 
 
 
