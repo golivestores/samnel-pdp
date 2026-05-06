@@ -194,6 +194,11 @@
     --color-cream: #FBF5EC;
     --color-taupe: #C9905A;
     --color-white: #ffffff;
+    /* Unify all Aeonik Mono usage onto Aeonik Pro per brand decision —
+       only Georgia italic Samnel logo wordmark is allowed to differ.
+       Aeonik Pro is loaded with weights 400 + 700; mono-set text at
+       font-weight:500 falls back to 400, weight:600 falls back to 700. */
+    --font-f-aeonik-mono: 'Aeonik Pro', system-ui, sans-serif;
   }
   /* Hide original bottom HOME button + menu trigger */
   .nav[data-v-b5a28948] { display: none !important; }
@@ -547,7 +552,7 @@
     z-index: 100;
     transform: translateY(0);
     transition: transform .45s cubic-bezier(.77,0,.175,1);
-    font-family: 'Aeonik Mono', system-ui, sans-serif;
+    font-family: 'Aeonik Pro', system-ui, sans-serif;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   }
   .ch-header.is-hidden { transform: translateY(-100%); }
@@ -1237,6 +1242,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluid Glass - About</title>

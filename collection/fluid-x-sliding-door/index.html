@@ -194,6 +194,11 @@
     --color-cream: #FBF5EC;
     --color-taupe: #C9905A;
     --color-white: #ffffff;
+    /* Unify all Aeonik Mono usage onto Aeonik Pro per brand decision —
+       only Georgia italic Samnel logo wordmark is allowed to differ.
+       Aeonik Pro is loaded with weights 400 + 700; mono-set text at
+       font-weight:500 falls back to 400, weight:600 falls back to 700. */
+    --font-f-aeonik-mono: 'Aeonik Pro', system-ui, sans-serif;
   }
   /* Hide original bottom HOME button + menu trigger */
   .nav[data-v-b5a28948] { display: none !important; }
@@ -547,7 +552,7 @@
     z-index: 100;
     transform: translateY(0);
     transition: transform .45s cubic-bezier(.77,0,.175,1);
-    font-family: 'Aeonik Mono', system-ui, sans-serif;
+    font-family: 'Aeonik Pro', system-ui, sans-serif;
     border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   }
   .ch-header.is-hidden { transform: translateY(-100%); }
@@ -1269,7 +1274,7 @@ window.addEventListener('unhandledrejection', function(e) {
   }
   .ph-price { display: flex; align-items: baseline; gap: 1rem;
     margin-top: 1.4rem; margin-bottom: 2.8rem;
-    font-family: 'Aeonik Mono', monospace; flex-wrap: wrap; }
+    font-family: 'Aeonik Pro', sans-serif; flex-wrap: wrap; }
   .ph-price .ph-price-now { font-size: 2.8rem; font-weight: 600; color: var(--brand-blue); }
   .ph-price .ph-price-was { font-size: 1.5rem; color: rgba(0,0,0,.45); text-decoration: line-through; }
   .ph-price .ph-price-tag { font-size: 1rem; padding: .35rem .9rem; border-radius: 999px;
@@ -1283,7 +1288,7 @@ window.addEventListener('unhandledrejection', function(e) {
   .ph-acc-head { display: flex; align-items: center; justify-content: space-between;
     width: 100%; padding: 1.6rem 0; cursor: pointer; background: none; border: 0;
     font-size: 1.3rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-    font-family: 'Aeonik Mono', monospace; color: var(--brand-blue); text-align: left; }
+    font-family: 'Aeonik Pro', sans-serif; color: var(--brand-blue); text-align: left; }
   .ph-acc-head:hover { color: var(--brand-orange); }
   .ph-acc-icon { width: 1.4rem; height: 1.4rem; position: relative; flex-shrink: 0;
     transition: transform .35s cubic-bezier(.77,0,.175,1); }
@@ -1564,6 +1569,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluid Glass - Fluid X Sliding Door</title>
