@@ -1199,6 +1199,19 @@ window.addEventListener('unhandledrejection', function(e) {
       padding-bottom: 14rem !important;
     }
   }
+
+  /* Collection-overview sticky tab bar: nudge it below the 7rem
+     fixed pink .ch-header so the bar isn't hidden behind it on scroll.
+     Original Nuxt rules: .head{inset:-1px 0 auto;position:sticky}
+                          .nav{position:sticky;top:0}. Both are anchored
+     to viewport-top:0. Push to top:7rem to match .ch-header height. */
+  .collection-overview[data-v-9feb6a08] .head[data-v-9feb6a08] {
+    top: 7rem !important;
+    inset: 7rem 0 auto !important;
+  }
+  .collection-overview[data-v-9feb6a08] .nav[data-v-9feb6a08] {
+    top: 7rem !important;
+  }
 </style>
 <!-- SAMNEL-INJECT-END -->
 
@@ -1339,6 +1352,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COLLECTION-COPY-OVERLAY-END -->
+
+
 
 
 
