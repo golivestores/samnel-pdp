@@ -1241,6 +1241,56 @@ window.addEventListener('unhandledrejection', function(e) {
       }
     }
   }
+
+  // The 4 collection-overview tabs. samnel-ref's TEXT_MAP already swapped
+  // the original "Doors / Windows / Structural / Additional" pairs into
+  // duplicate "For Adults / For Children" strings, so plain text-matching
+  // can't distinguish the four positions. Set them by INDEX instead.
+  // Same idea for the matching <h2> heading + intro paragraph that sits
+  // ABOVE each of the 4 .category sections — keep them in sync with tabs.
+  var TAB_LABELS = [
+    'For Adults',
+    'For Children',
+    'Family Bundle',
+    'Athlete Subscription'
+  ];
+  var TAB_HEADINGS = [
+    'For Adults',
+    'For Children',
+    'Family Bundle (Adult + Children)',
+    'Athlete Subscription (Adult, Higher Dose)'
+  ];
+  var TAB_DESCRIPTIONS = [
+    'Pre-activated calcifediol (25-OH-D₃) + K₂ (MK-7) for daily adult wellness — 3.2× more effective than standard D₃, with onset in just 4 hours.',
+    'Strawberry-flavored liquid stick formulated for kids — 25-OH-D₃ + Calcium, Magnesium, and Zinc to support healthy bone growth and immunity.',
+    'One bottle for the adults, one liquid-stick pack for the kids — the household supplementation kit at a bundled price.',
+    'Higher-dose adult D₃+K₂ on auto-renewing monthly subscription — built for athletes and active lifestyles. Save 25% vs one-time purchase.'
+  ];
+
+  function applyTabLabels() {
+    var btns = document.querySelectorAll('.collection-overview[data-v-9feb6a08] .head ul.nav li.item > button');
+    if (btns.length === 4) {
+      for (var i = 0; i < 4; i++) {
+        if (btns[i].textContent.trim() !== TAB_LABELS[i]) {
+          btns[i].textContent = TAB_LABELS[i];
+        }
+      }
+    }
+    // Section content: each .category has its own h2 title + description.
+    // Replace by index so Family Bundle / Athlete Subscription don't read
+    // as the wrong duplicate.
+    var cats = document.querySelectorAll('.collection-overview[data-v-9feb6a08] .category');
+    for (var j = 0; j < cats.length && j < 4; j++) {
+      var h = cats[j].querySelector('h2, h3');
+      if (h && h.textContent.trim() !== TAB_HEADINGS[j]) {
+        h.textContent = TAB_HEADINGS[j];
+      }
+      var p = cats[j].querySelector('p');
+      if (p && p.textContent.trim() !== TAB_DESCRIPTIONS[j]) {
+        p.textContent = TAB_DESCRIPTIONS[j];
+      }
+    }
+  }
   var VIDEO_SRC = "/brand/" + encodeURIComponent("运动健将视频-健康.mp4");
   // Inject a looping muted brand video + dark overlay as the background
   // of the "Every great formula begins with understanding" .banner-cta
@@ -1272,9 +1322,11 @@ window.addEventListener('unhandledrejection', function(e) {
   }
   function start() {
     applyOverrides(document.body);
+    applyTabLabels();
     buildBannerVideo();
     var obs = new MutationObserver(function(){
       applyOverrides(document.body);
+      applyTabLabels();
       buildBannerVideo();
     });
     obs.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -1287,6 +1339,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COLLECTION-COPY-OVERLAY-END -->
+
+
 
 
 
