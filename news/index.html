@@ -1167,6 +1167,45 @@ window.addEventListener('unhandledrejection', function(e) {
     height: 100% !important;
   }
 
+  /* News-overview grid row spacing — Nuxt's default 6rem (desktop) / 4rem
+     (mobile) packs blog covers too tightly under the previous row's title.
+     Bump desktop to 14rem and mobile to 8rem so each row breathes. */
+  .news-overview[data-v-e0fa3aa7] .overview[data-v-e0fa3aa7] {
+    grid-row-gap: 8rem !important;
+    row-gap: 8rem !important;
+  }
+  @media (min-width: 601px) {
+    .news-overview[data-v-e0fa3aa7] .overview[data-v-e0fa3aa7] {
+      grid-row-gap: 14rem !important;
+      row-gap: 14rem !important;
+    }
+  }
+
+  /* Force a uniform 4-column grid on desktop. Nuxt's default uses a
+     7-item-cycle layout (3 in row 1 of each cycle, 4 in row 2) which
+     leaves a visible gap at the end of every alternate row. Reset all
+     .item grid-column overrides so items auto-flow into 4 equal cols. */
+  @media (min-width: 601px) {
+    .news-overview[data-v-e0fa3aa7] .overview[data-v-e0fa3aa7] {
+      grid-template-columns: repeat(4, 1fr) !important;
+      grid-column-gap: 2rem !important;
+      column-gap: 2rem !important;
+    }
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7],
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:first-child,
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(2),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(3),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+1),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+2),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+3),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+4),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+5),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+6),
+    .news-overview[data-v-e0fa3aa7] .item[data-v-e0fa3aa7]:nth-child(7n+7) {
+      grid-column: auto !important;
+    }
+  }
+
   /* ===== "Where science meets wellness" banner-cta =====
      Match the product page treatment: drop the brand-blue container
      background and the orange decorative SVG / circles, drive the
@@ -1413,6 +1452,10 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- NEWS-COPY-OVERLAY-END -->
+
+
+
+
 
 
 
