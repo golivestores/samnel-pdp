@@ -241,6 +241,15 @@
   }
   @media (min-width: 601px) {
     .product-header[data-v-8aa832f8] { margin-bottom: 12rem !important; }
+    /* Pin the product main image + thumbs column while the text column on
+       the right scrolls. Sticky engages once the column's top edge would
+       go above 8rem from viewport top (leaves space for the 7rem .ch-header). */
+    .product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) {
+      position: sticky !important;
+      top: 8rem !important;
+      align-self: flex-start !important;
+      max-height: calc(100vh - 8rem) !important;
+    }
   }
   /* Manifesto banner-cta: full-width (no cream margin around) */
   .banner-cta[data-v-f377522f] { margin: 0 !important; }
@@ -1267,6 +1276,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 
