@@ -1204,13 +1204,27 @@ window.addEventListener('unhandledrejection', function(e) {
      fixed pink .ch-header so the bar isn't hidden behind it on scroll.
      Original Nuxt rules: .head{inset:-1px 0 auto;position:sticky}
                           .nav{position:sticky;top:0}. Both are anchored
-     to viewport-top:0. Push to top:7rem to match .ch-header height. */
+     to viewport-top:0. Push to top:7rem to match .ch-header height,
+     then animate top → 0 whenever the .ch-header itself slides up
+     (.is-hidden class added on scroll-down) so the bar tracks the
+     header instead of leaving a 7rem gap above it. */
   .collection-overview[data-v-9feb6a08] .head[data-v-9feb6a08] {
     top: 7rem !important;
     inset: 7rem 0 auto !important;
+    transition: top .45s cubic-bezier(.77,0,.175,1),
+                inset .45s cubic-bezier(.77,0,.175,1) !important;
   }
   .collection-overview[data-v-9feb6a08] .nav[data-v-9feb6a08] {
     top: 7rem !important;
+    transition: top .45s cubic-bezier(.77,0,.175,1) !important;
+  }
+  /* Header hidden → tab bar slides up with it. Modern :has() */
+  body:has(.ch-header.is-hidden) .collection-overview[data-v-9feb6a08] .head[data-v-9feb6a08] {
+    top: 0 !important;
+    inset: 0 0 auto !important;
+  }
+  body:has(.ch-header.is-hidden) .collection-overview[data-v-9feb6a08] .nav[data-v-9feb6a08] {
+    top: 0 !important;
   }
 </style>
 <!-- SAMNEL-INJECT-END -->
@@ -1352,6 +1366,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COLLECTION-COPY-OVERLAY-END -->
+
+
 
 
 
