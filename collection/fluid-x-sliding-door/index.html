@@ -206,16 +206,22 @@
   /* Per-page top-center wordmark layer (peeks through when our custom header
      hides on mobile scroll). Hide entirely. */
   .page-header[data-v-613436a9] { display: none !important; visibility: hidden !important; }
-  /* Product page hero left column: shrink the gif/diagram so it doesn't crop full-bleed.
-     Force a square (1:1) box so the source image's portrait ratio (3946x5920) doesn't
-     drive the column height — the image fits inside via object-fit:contain. */
-  .product-header[data-v-8aa832f8] .base-image[data-v-8aa832f8] {
+  /* Product page hero left column: enforce a 1:1 square box regardless of the
+     source image's natural aspect ratio (model photos, capsule close-ups, the
+     ingredient gif — all show in the same square). object-fit:contain shows
+     each image whole; cream fills any letterbox space. No heavy padding so
+     the image takes up the full square. */
+  .product-header[data-v-8aa832f8] .base-image[data-v-8aa832f8],
+  .product-header[data-v-8aa832f8] picture[data-v-8aa832f8] {
     object-fit: contain !important;
     background: var(--brand-cream) !important;
-    padding: 18% !important;
     box-sizing: border-box !important;
     aspect-ratio: 1 / 1 !important;
+    width: 100% !important;
     height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    display: block !important;
   }
   /* Manifesto banner-cta: full-width (no cream margin around) */
   .banner-cta[data-v-f377522f] { margin: 0 !important; }
@@ -1576,6 +1582,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 
 
 
