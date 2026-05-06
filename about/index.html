@@ -206,30 +206,27 @@
   /* Per-page top-center wordmark layer (peeks through when our custom header
      hides on mobile scroll). Hide entirely. */
   .page-header[data-v-613436a9] { display: none !important; visibility: hidden !important; }
-  /* Product page hero main image: a 1:1 square frame holds the <img>.
-     buildThumbStrip() in inject.py wraps the img in .ph-main-image-frame
-     at runtime; the wrapper enforces the square shape via aspect-ratio,
-     and the img fills it via object-fit:cover so any source photo
-     (portrait, landscape, or square) renders as a tidy square crop. */
+  /* Product page hero main image: a 1:1 square frame.
+     The frame is a plain <div> using background-image (not <img>) because
+     Nuxt's stylesheet pins .base-image to aspect-ratio:983/1211 and
+     height:100% via rules that fight every override. Driving the visible
+     image off the frame's background-image dodges that fight entirely:
+     aspect-ratio + background-size:cover always work. The <img> stays
+     in the DOM (display:none) so srcset/alt are still available to crawlers. */
   .product-header[data-v-8aa832f8] .ph-main-image-frame {
     position: relative !important;
     width: 100% !important;
     aspect-ratio: 1 / 1 !important;
     overflow: hidden !important;
-    background: var(--brand-cream) !important;
+    background-color: var(--brand-cream) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
     flex: 1 1 auto !important;
     align-self: flex-start !important;
   }
   .product-header[data-v-8aa832f8] .ph-main-image-frame .base-image[data-v-8aa832f8] {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    aspect-ratio: auto !important;
-    padding: 0 !important;
-    background: transparent !important;
-    margin: 0 !important;
+    display: none !important;
   }
   /* Nuxt's stylesheet sets .column:nth-child(2){overflow:hidden} and pins
      the text column to height:100svh — so when our 1:1 square frame is
@@ -1276,6 +1273,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- ABOUT-COPY-OVERLAY-END -->
+
+
 
 
 

@@ -206,30 +206,27 @@
   /* Per-page top-center wordmark layer (peeks through when our custom header
      hides on mobile scroll). Hide entirely. */
   .page-header[data-v-613436a9] { display: none !important; visibility: hidden !important; }
-  /* Product page hero main image: a 1:1 square frame holds the <img>.
-     buildThumbStrip() in inject.py wraps the img in .ph-main-image-frame
-     at runtime; the wrapper enforces the square shape via aspect-ratio,
-     and the img fills it via object-fit:cover so any source photo
-     (portrait, landscape, or square) renders as a tidy square crop. */
+  /* Product page hero main image: a 1:1 square frame.
+     The frame is a plain <div> using background-image (not <img>) because
+     Nuxt's stylesheet pins .base-image to aspect-ratio:983/1211 and
+     height:100% via rules that fight every override. Driving the visible
+     image off the frame's background-image dodges that fight entirely:
+     aspect-ratio + background-size:cover always work. The <img> stays
+     in the DOM (display:none) so srcset/alt are still available to crawlers. */
   .product-header[data-v-8aa832f8] .ph-main-image-frame {
     position: relative !important;
     width: 100% !important;
     aspect-ratio: 1 / 1 !important;
     overflow: hidden !important;
-    background: var(--brand-cream) !important;
+    background-color: var(--brand-cream) !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
     flex: 1 1 auto !important;
     align-self: flex-start !important;
   }
   .product-header[data-v-8aa832f8] .ph-main-image-frame .base-image[data-v-8aa832f8] {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    aspect-ratio: auto !important;
-    padding: 0 !important;
-    background: transparent !important;
-    margin: 0 !important;
+    display: none !important;
   }
   /* Nuxt's stylesheet sets .column:nth-child(2){overflow:hidden} and pins
      the text column to height:100svh — so when our 1:1 square frame is
@@ -1516,18 +1513,37 @@ window.addEventListener('unhandledrejection', function(e) {
 
   // Wrap the product-header main image in a 1:1 aspect-ratio frame so the
   // visible area is always square regardless of the source photo's native
-  // dimensions. (Setting aspect-ratio directly on <img> fights its intrinsic
-  // aspect ratio in Nuxt's stylesheet — wrapping is more reliable.)
-  // Idempotent: skips if the img is already inside .ph-main-image-frame.
+  // dimensions. The frame uses background-image (not <img>) so Nuxt's
+  // intrinsic .base-image aspect-ratio rule can't fight us. The <img>
+  // remains in the DOM (display:none) so srcset/alt are still crawlable
+  // and so the same element can be re-targeted on thumbnail clicks.
+  // Idempotent: re-syncs frame's background-image from the img's current
+  // src on every call, so MEDIA_MAP swaps and thumb clicks both flow
+  // through naturally.
   function wrapMainImageInFrame() {
     var imgs = document.querySelectorAll('.product-header[data-v-8aa832f8] .column[data-v-8aa832f8]:nth-child(2) img.base-image');
     imgs.forEach(function(img){
+      var src = img.currentSrc || img.getAttribute('src') || '';
+      if (!src) {
+        var ss = img.getAttribute('srcset') || '';
+        if (ss) src = ss.split(',')[0].trim().split(' ')[0];
+      }
       var p = img.parentNode;
-      if (p && p.classList && p.classList.contains('ph-main-image-frame')) return;
-      var frame = document.createElement('div');
-      frame.className = 'ph-main-image-frame';
-      p.insertBefore(frame, img);
-      frame.appendChild(img);
+      var frame;
+      if (p && p.classList && p.classList.contains('ph-main-image-frame')) {
+        frame = p;
+      } else {
+        frame = document.createElement('div');
+        frame.className = 'ph-main-image-frame';
+        p.insertBefore(frame, img);
+        frame.appendChild(img);
+      }
+      if (src) {
+        var desired = 'url("' + src + '")';
+        if (frame.style.backgroundImage !== desired) {
+          frame.style.backgroundImage = desired;
+        }
+      }
     });
   }
 
@@ -1559,6 +1575,10 @@ window.addEventListener('unhandledrejection', function(e) {
           }
           mainImg.removeAttribute('srcset');
           mainImg.setAttribute('src', url);
+          // Update the frame's background-image (the visible photo).
+          // The <img> itself is display:none — it's the frame that renders.
+          var frame = mainImg.closest('.ph-main-image-frame');
+          if (frame) frame.style.backgroundImage = 'url("' + url + '")';
           // Sync active state across BOTH strips (desktop + mobile) by index
           document.querySelectorAll('.ph-thumb').forEach(function(x){
             x.classList.toggle('is-active', x.dataset.idx === String(idx));
@@ -1724,6 +1744,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 
 
 
