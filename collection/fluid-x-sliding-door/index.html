@@ -586,9 +586,9 @@
   }
   .ch-header .ch-nav a {
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     letter-spacing: .08em;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     text-decoration: none;
     opacity: .82;
@@ -1277,9 +1277,16 @@ window.addEventListener('unhandledrejection', function(e) {
     font-family: 'Aeonik Pro', sans-serif; flex-wrap: wrap; }
   .ph-price .ph-price-now { font-size: 2.8rem; font-weight: 600; color: var(--brand-blue); }
   .ph-price .ph-price-was { font-size: 1.5rem; color: rgba(0,0,0,.45); text-decoration: line-through; }
-  .ph-price .ph-price-tag { font-size: 1rem; padding: .35rem .9rem; border-radius: 999px;
+  .ph-price .ph-price-tag { font-size: 1.3rem; padding: .35rem .9rem; border-radius: 999px;
     background: var(--brand-orange); color: #fff; font-weight: 600; letter-spacing: .08em;
     text-transform: uppercase; }
+  /* "Samnel D3 + K2" eyebrow above product title — match accordion title size/weight.
+     The Nuxt rule sets 1.4rem / 600; we just nudge size down to 1.3rem so it pairs
+     with .ph-acc-head and .ch-header .ch-nav a. Color stays as inherited (black). */
+  .product-header[data-v-8aa832f8] .base-title[data-v-4a4379f9] {
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+  }
   .ph-desc { font-size: 1.4rem; line-height: 1.55; color: var(--color-grey);
     max-width: 42rem; margin-top: 1.6rem; }
   .ph-acc { display: flex; flex-direction: column; margin-top: 2.4rem; max-width: 48rem; }
@@ -1569,6 +1576,9 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COPY-OVERLAY-END -->
+
+
+
 
 
 
