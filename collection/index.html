@@ -1137,6 +1137,23 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <style>
+  /* ===== Collection-overview: trim to 2 SKUs only =====
+     We have only 2 products (Adult D₃+K₂ + Children's formula). The
+     fluid.glass source ships 4 categories (Doors / Windows / Structural
+     / Additional) with 21 products total. Hide the first 2 tabs and the
+     first 2 corresponding category blocks, then within each remaining
+     category show only the first product card. End state: 2 tabs visible,
+     1 product card per tab → 2 cards total. */
+  .collection-overview[data-v-9feb6a08] .top .head ul li.item:nth-child(-n+2) {
+    display: none !important;
+  }
+  .collection-overview[data-v-9feb6a08] .overview > div.category[data-v-9feb6a08]:nth-of-type(-n+2) {
+    display: none !important;
+  }
+  .collection-overview[data-v-9feb6a08] .overview > div.category[data-v-9feb6a08] > a.item:nth-of-type(n+2) {
+    display: none !important;
+  }
+
   /* ===== "Where science meets wellness" banner-cta =====
      Match the product page treatment: drop the brand-blue container
      background and the orange decorative SVG / circles, drive the
@@ -1287,6 +1304,8 @@ window.addEventListener('unhandledrejection', function(e) {
 })();
 </script>
 <!-- COLLECTION-COPY-OVERLAY-END -->
+
+
 
 
 <meta charset="utf-8">
